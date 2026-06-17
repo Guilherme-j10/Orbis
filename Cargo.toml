@@ -1,0 +1,11 @@
+[package]
+name = "orbis"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+femtovg = { version = "0.25.1", features = ["wgpu"] }
+glutin = "0.32.3"
+winit = "0.30.13"
+wgpu = { version = "29.0.3", default-features = false, features = ["vulkan"] }
+pollster = "0.4.0"
