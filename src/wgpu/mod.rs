@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use femtovg::{Canvas, renderer::WGPURenderer};
+use femtovg::{Canvas, Color, renderer::WGPURenderer};
 use winit::{
     application::ApplicationHandler,
     event::{DeviceEvent, DeviceId, WindowEvent},
@@ -71,6 +71,7 @@ impl ApplicationHandler for WgpuApp {
         let window_attrs = Window::default_attributes()
             .with_inner_size(winit::dpi::PhysicalSize::new(self.width, self.height))
             .with_resizable(self.resizeable)
+            .with_visible(false)
             .with_title(self.title);
 
         let window = Arc::new(event_loop.create_window(window_attrs).unwrap());
@@ -150,6 +151,12 @@ impl ApplicationHandler for WgpuApp {
 
         let mut canvas = Canvas::new(renderer).expect("Cannot create canvas");
         canvas.set_size(width, height, window.scale_factor() as f32);
+        canvas.clear_rect(0, 0, width, height, Color::rgb(40, 43, 51));
+        demo_surface.present(&mut canvas);
+
+        window.request_redraw();
+        window.focus_window();
+        window.set_visible(true);
 
         self.callbacks = Some(run(canvas, demo_surface, window));
     }
