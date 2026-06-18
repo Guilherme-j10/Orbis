@@ -6,6 +6,7 @@ use winit::{dpi::PhysicalSize, event::WindowEvent, window::Window};
 use crate::wgpu::{Callbacks, WindowSurface};
 
 mod wgpu;
+mod engine;
 
 fn main() {
     wgpu::start_wgpu(1440, 900, "Orbis", false);
