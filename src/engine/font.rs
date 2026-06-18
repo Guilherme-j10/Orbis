@@ -8,22 +8,16 @@ pub struct OrbFont<'a, T: Renderer> {
 }
 
 enum OrbParts {
-    CircleBase,
-    CircleSmallCenter,
-    LeftLag,
-    RightLag,
-    TopLag,
-    BottomLag,
-    HalfLeftCircle,
-    HalfRightCircle,
-    TopAngleLeftLag,
-    TopAngleRightLag,
-    BottomAngleLeftLag,
-    BottomAngleRightLag
-}
-
-impl From<OrbPartCode> for OrbParts {
-    fn from(value: OrbPartCode) -> Self {
-        OrbParts::BottomAngleLeftLag
-    }
+    CircleBase = 1,
+    CircleSmallCenter = 2,
+    LeftLag = 3,
+    RightLag = 4,
+    TopLag = 5,
+    BottomLag = 6,
+    HalfLeftCircle = 7,
+    HalfRightCircle = 8,
+    TopAngleLeftLag = 9,
+    TopAngleRightLag = 10,
+    BottomAngleLeftLag = 11,
+    BottomAngleRightLag = 12
 }
