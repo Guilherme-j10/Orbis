@@ -2,60 +2,18 @@ use std::f32::consts::PI;
 
 use femtovg::{Canvas, Paint, Path, Renderer};
 
+pub type ContextPoints = (f32, f32);
 type OrbPartCode = u8;
-pub enum OrbParts {
-    CircleBase = 1,
-    CircleSmallCenter = 2,
-    LeftLag = 3,
-    RightLag = 4,
-    TopLag = 5,
-    BottomLag = 6,
-    HalfLeftCircle = 7,
-    HalfRightCircle = 8,
-    TopAngleLeftLag = 9,
-    TopAngleRightLag = 10,
-    BottomAngleLeftLag = 11,
-    BottomAngleRightLag = 12,
-}
-
-impl From<OrbParts> for u8 {
-    fn from(value: OrbParts) -> Self {
-        value as u8
-    }
-}
-
-impl TryFrom<OrbPartCode> for OrbParts {
-    type Error = &'static str;
-
-    fn try_from(value: OrbPartCode) -> Result<Self, Self::Error> {
-        match value {
-            1 => Ok(OrbParts::CircleBase),
-            2 => Ok(OrbParts::CircleSmallCenter),
-            3 => Ok(OrbParts::LeftLag),
-            4 => Ok(OrbParts::RightLag),
-            5 => Ok(OrbParts::TopLag),
-            6 => Ok(OrbParts::BottomLag),
-            7 => Ok(OrbParts::HalfLeftCircle),
-            8 => Ok(OrbParts::HalfRightCircle),
-            9 => Ok(OrbParts::TopAngleLeftLag),
-            10 => Ok(OrbParts::TopAngleRightLag),
-            11 => Ok(OrbParts::BottomAngleLeftLag),
-            12 => Ok(OrbParts::BottomAngleRightLag),
-            _ => Err("Invalid part code"),
-        }
-    }
-}
-
 pub struct OrbFont<'a, T: Renderer> {
-    fsize: f32, //means width
+    _fsize: f32, //means width
     default_paint: Paint,
     lag_paint: Paint,
-    context_point: (f32, f32), // x, y
+    _context_point: (f32, f32), // x, y
     font_center: (f32, f32),   // x, y
     canvas: &'a mut Canvas<T>,
-    draw_box: bool,
+    _draw_box: bool,
     base_circle_r: f32,
-    parts_to_draw: Vec<u8>,
+    parts_to_draw: Vec<OrbParts>,
 }
 
 impl<'a, T: Renderer> OrbFont<'a, T> {
@@ -69,11 +27,11 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
         Self {
             canvas,
-            fsize,
+            _fsize: fsize,
             default_paint: color,
             lag_paint: lag_paint_default,
-            context_point: cp,
-            draw_box: false,
+            _context_point: cp,
+            _draw_box: false,
             parts_to_draw: vec![],
             font_center,
             base_circle_r,
@@ -81,10 +39,10 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     }
 
     pub fn with_box(self, draw_box: bool) -> Self {
-        Self { draw_box, ..self }
+        Self { _draw_box: draw_box, ..self }
     }
 
-    pub fn with_parts(self, parts: Vec<u8>) -> Self {
+    pub fn with_parts(self, parts: Vec<OrbParts>) -> Self {
         Self {
             parts_to_draw: parts,
             ..self
@@ -92,14 +50,17 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     }
 
     pub fn draw(&mut self) -> () {
+        if self._draw_box == true {
+            // draw box here
+        }
+
         let parts_to_draw = self.parts_to_draw.clone();
         for part in parts_to_draw.iter() {
-            let part = OrbParts::try_from(*part).unwrap();
             self.draw_part_by_match(part);
         }
     }
 
-    pub fn draw_part_by_match(&mut self, part: OrbParts) -> () {
+    pub fn draw_part_by_match(&mut self, part: &OrbParts) -> () {
         match part {
             OrbParts::CircleBase => self.draw_circle_base(),
             OrbParts::CircleSmallCenter => self.draw_circle_small_center(),
@@ -237,5 +198,49 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.move_to(initx, inity);
         path.line_to(initx + 8.0, inity + 13.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+    }
+}
+
+#[derive(Clone)]
+pub enum OrbParts {
+    CircleBase = 1,
+    CircleSmallCenter = 2,
+    LeftLag = 3,
+    RightLag = 4,
+    TopLag = 5,
+    BottomLag = 6,
+    HalfLeftCircle = 7,
+    HalfRightCircle = 8,
+    TopAngleLeftLag = 9,
+    TopAngleRightLag = 10,
+    BottomAngleLeftLag = 11,
+    BottomAngleRightLag = 12,
+}
+
+impl From<OrbParts> for u8 {
+    fn from(value: OrbParts) -> Self {
+        value as u8
+    }
+}
+
+impl TryFrom<OrbPartCode> for OrbParts {
+    type Error = &'static str;
+
+    fn try_from(value: OrbPartCode) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(OrbParts::CircleBase),
+            2 => Ok(OrbParts::CircleSmallCenter),
+            3 => Ok(OrbParts::LeftLag),
+            4 => Ok(OrbParts::RightLag),
+            5 => Ok(OrbParts::TopLag),
+            6 => Ok(OrbParts::BottomLag),
+            7 => Ok(OrbParts::HalfLeftCircle),
+            8 => Ok(OrbParts::HalfRightCircle),
+            9 => Ok(OrbParts::TopAngleLeftLag),
+            10 => Ok(OrbParts::TopAngleRightLag),
+            11 => Ok(OrbParts::BottomAngleLeftLag),
+            12 => Ok(OrbParts::BottomAngleRightLag),
+            _ => Err("Invalid part code"),
+        }
     }
 }

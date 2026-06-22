@@ -1,12 +1,14 @@
-use std::{f32::consts::PI, sync::Arc};
+use std::sync::Arc;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::{dpi::PhysicalSize, event::WindowEvent, window::Window};
 
 use crate::{
-    font_engine::font::{OrbFont, OrbParts},
+    font_engine::{font::{OrbFont, OrbParts}, font_mask::FontMask},
     wgpu::{Callbacks, WindowSurface},
 };
+
+const ASIDE_MENU_WIDTH: f32 = 300.0;
 
 mod font_engine;
 mod wgpu;
@@ -17,15 +19,15 @@ fn main() {
 
 fn file_system_container<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSize<u32>) -> () {
     let mut main_container = Path::new();
-    main_container.rect(0.0, 0.0, 320.0, size.height as f32);
+    main_container.rect(0.0, 0.0, ASIDE_MENU_WIDTH, size.height as f32);
     canvas.fill_path(&main_container, &Paint::color(Color::rgb(46, 52, 61)));
 }
 
 fn font_editor<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSize<u32>) -> () {
-    let bounds = (320.0, 0.0);
+    let bounds = (ASIDE_MENU_WIDTH, 0.0);
 
     let mut main_container = Path::new();
-    main_container.rect(320.0, 0.0, size.width as f32, size.height as f32);
+    main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
     canvas.fill_path(&main_container, &Paint::color(Color::rgb(40, 43, 51)));
 
     draw_mask(canvas, bounds.0 + 20.0, bounds.1 + 20.0);
@@ -33,19 +35,7 @@ fn font_editor<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSize<u32>) ->
 }
 
 fn draw_mask<T: Renderer>(canvas: &mut Canvas<T>, cx: f32, cy: f32) -> () {
-    let _ = OrbFont::init(
-        canvas,
-        100.0,
-        Paint::color(Color::rgb(82, 88, 95)).with_line_width(4.0),
-        (cx, cy),
-    )
-    .with_box(false)
-    .with_parts(vec![
-        OrbParts::CircleBase.into(),
-        OrbParts::CircleSmallCenter.into(),
-        OrbParts::LeftLag.into()
-    ])
-    .draw();
+    FontMask::new(canvas, (cx, cy), "a");
 }
 
 fn run<W: WindowSurface + 'static>(
