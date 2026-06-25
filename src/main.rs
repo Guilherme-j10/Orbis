@@ -1,16 +1,21 @@
-use std::sync::Arc;
+use std::{
+    rc::Rc,
+    sync::{Arc, RwLock},
+};
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::{dpi::PhysicalSize, event::WindowEvent, window::Window};
 
 use crate::{
-    font_engine::{font::{OrbFont, OrbParts}, font_mask::FontMask},
+    font_engine::font_mask::FontMask,
+    interfaces::app::{AppState, MousePosition},
     wgpu::{Callbacks, WindowSurface},
 };
 
 const ASIDE_MENU_WIDTH: f32 = 300.0;
 
 mod font_engine;
+mod interfaces;
 mod wgpu;
 
 fn main() {
@@ -23,19 +28,28 @@ fn file_system_container<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSiz
     canvas.fill_path(&main_container, &Paint::color(Color::rgb(46, 52, 61)));
 }
 
-fn font_editor<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSize<u32>) -> () {
+fn font_editor<T: Renderer>(
+    canvas: &mut Canvas<T>,
+    size: &PhysicalSize<u32>,
+    state: Rc<RwLock<AppState>>,
+) -> () {
     let bounds = (ASIDE_MENU_WIDTH, 0.0);
 
     let mut main_container = Path::new();
     main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
     canvas.fill_path(&main_container, &Paint::color(Color::rgb(40, 43, 51)));
 
-    draw_mask(canvas, bounds.0 + 20.0, bounds.1 + 20.0);
-    draw_mask(canvas, bounds.0 + 120.0, bounds.1 + 20.0);
+    draw_mask(canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
+    draw_mask(canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
 }
 
-fn draw_mask<T: Renderer>(canvas: &mut Canvas<T>, cx: f32, cy: f32) -> () {
-    FontMask::new(canvas, (cx, cy), "a");
+fn draw_mask<T: Renderer>(
+    canvas: &mut Canvas<T>,
+    state: Rc<RwLock<AppState>>,
+    cx: f32,
+    cy: f32,
+) -> () {
+    FontMask::new(canvas, state, (cx, cy), "a");
 }
 
 fn run<W: WindowSurface + 'static>(
@@ -43,6 +57,10 @@ fn run<W: WindowSurface + 'static>(
     mut surface: W,
     window: Arc<Window>,
 ) -> Callbacks {
+    let app_state = Rc::new(RwLock::new(AppState {
+        mouse: MousePosition::default(),
+    }));
+
     Callbacks {
         window_event: Box::new(move |event, event_loop| match event {
             WindowEvent::Resized(physical_size) => {
@@ -55,10 +73,24 @@ fn run<W: WindowSurface + 'static>(
                 canvas.set_size(size.width, size.height, dpi_factor as f32);
                 canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(40, 43, 51));
 
+                let state_wrapper = app_state.clone();
+
                 file_system_container(&mut canvas, &size);
-                font_editor(&mut canvas, &size);
+                font_editor(&mut canvas, &size, state_wrapper.clone());
 
                 surface.present(&mut canvas);
+            }
+            WindowEvent::CursorMoved {
+                device_id: _,
+                position,
+            } => {
+                let state_wrapper = app_state.clone();
+                let mut state = state_wrapper
+                    .write()
+                    .expect("Fail to aquare the writer state");
+
+                state.mouse.x = position.x;
+                state.mouse.y = position.y
             }
             WindowEvent::CloseRequested => event_loop.exit(),
             _ => (),
