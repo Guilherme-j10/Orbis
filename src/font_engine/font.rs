@@ -16,6 +16,11 @@ pub struct OrbFont<'a, T: Renderer> {
     parts_to_draw: Vec<OrbParts>,
 }
 
+pub enum FontFillKind {
+    Stroke,
+    Path
+}
+
 impl<'a, T: Renderer> OrbFont<'a, T> {
     pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, color: Paint, cp: (f32, f32)) -> Self {
         let (bw, bh) = (100.0, 80.0);
@@ -49,18 +54,21 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         }
     }
 
-    pub fn draw(&mut self) -> () {
+    pub fn draw(&mut self) -> Vec<(Path, Paint, FontFillKind)> {
         if self._draw_box == true {
-            // draw box here
         }
 
+        let mut path_list: Vec<(Path, Paint, FontFillKind)> = vec![];
         let parts_to_draw = self.parts_to_draw.clone();
         for part in parts_to_draw.iter() {
-            self.draw_part_by_match(part);
+            let path = self.draw_part_by_match(part);
+            path_list.push(path);
         }
+
+        return path_list
     }
 
-    pub fn draw_part_by_match(&mut self, part: &OrbParts) -> () {
+    pub fn draw_part_by_match(&mut self, part: &OrbParts) -> (Path, Paint, FontFillKind) {
         match part {
             OrbParts::CircleBase => self.draw_circle_base(),
             OrbParts::CircleSmallCenter => self.draw_circle_small_center(),
@@ -77,7 +85,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         }
     }
 
-    pub fn draw_circle_base(&mut self) -> () {
+    pub fn draw_circle_base(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let mut base_circle = Path::new();
         base_circle.arc(
@@ -89,52 +97,58 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             femtovg::Solidity::Solid,
         );
         self.canvas.stroke_path(&base_circle, &self.default_paint);
+        return (base_circle, self.default_paint.clone(), FontFillKind::Stroke) 
     }
 
-    pub fn draw_circle_small_center(&mut self) -> () {
+    pub fn draw_circle_small_center(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let mut center_circle = Path::new();
         center_circle.circle(cx, cy, self.base_circle_r / 3.0);
         self.canvas.fill_path(&center_circle, &self.default_paint);
+        return (center_circle, self.default_paint.clone(), FontFillKind::Path) 
     }
 
-    pub fn draw_left_lag(&mut self) -> () {
+    pub fn draw_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx - (self.base_circle_r / 2.0), cy);
         let mut path = Path::new();
         path.move_to(initx - 5.5, inity);
         path.line_to(initx - 25.0, inity);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_right_lag(&mut self) -> () {
+    pub fn draw_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx + (self.base_circle_r / 2.0), cy);
         let mut path = Path::new();
         path.move_to(initx + 5.5, inity);
         path.line_to(initx + 25.0, inity);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_top_lag(&mut self) -> () {
+    pub fn draw_top_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx, cy - (self.base_circle_r / 2.0));
         let mut path = Path::new();
         path.move_to(initx, inity - 5.5);
         path.line_to(initx, inity - 25.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_bottom_lag(&mut self) -> () {
+    pub fn draw_bottom_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx, cy + (self.base_circle_r / 2.0));
         let mut path = Path::new();
         path.move_to(initx, inity + 5.5);
         path.line_to(initx, inity + 25.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_half_left_circle(&mut self) -> () {
+    pub fn draw_half_left_circle(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx - 19.8, cy);
         let mut path = Path::new();
@@ -147,9 +161,10 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             femtovg::Solidity::Solid,
         );
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_half_right_circle(&mut self) -> () {
+    pub fn draw_half_right_circle(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx + 19.8, cy);
         let mut path = Path::new();
@@ -162,42 +177,47 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             femtovg::Solidity::Solid,
         );
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_top_angle_left_lag(&mut self) -> () {
+    pub fn draw_top_angle_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx - self.base_circle_r + 9.0, cy - self.base_circle_r);
         let mut path = Path::new();
         path.move_to(initx, inity);
         path.line_to(initx - 8.0, inity - 13.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_top_angle_right_lag(&mut self) -> () {
+    pub fn draw_top_angle_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx + self.base_circle_r - 9.0, cy - self.base_circle_r);
         let mut path = Path::new();
         path.move_to(initx, inity);
         path.line_to(initx + 8.0, inity - 13.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_bottom_angle_left_lag(&mut self) -> () {
+    pub fn draw_bottom_angle_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx - self.base_circle_r + 9.0, cy + self.base_circle_r);
         let mut path = Path::new();
         path.move_to(initx, inity);
         path.line_to(initx - 8.0, inity + 13.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 
-    pub fn draw_bottom_angle_right_lag(&mut self) -> () {
+    pub fn draw_bottom_angle_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx + self.base_circle_r - 9.0, cy + self.base_circle_r);
         let mut path = Path::new();
         path.move_to(initx, inity);
         path.line_to(initx + 8.0, inity + 13.0);
         self.canvas.stroke_path(&path, &self.lag_paint);
+        return (path, self.lag_paint.clone(), FontFillKind::Stroke)
     }
 }
 

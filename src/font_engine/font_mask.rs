@@ -3,8 +3,7 @@ use std::{rc::Rc, sync::RwLock};
 use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
-    font_engine::font::{ContextPoints, OrbFont, OrbParts},
-    interfaces::app::AppState,
+    font_engine::font::{ContextPoints, FontFillKind, OrbFont, OrbParts}, interfaces::app::AppState,
 };
 
 pub struct FontMask<'a, T: Renderer> {
@@ -26,12 +25,7 @@ impl<'a, T: Renderer> FontMask<'a, T> {
         bind_char: &'static str,
     ) -> () {
         let state = state.read().expect("Fail to read app state");
-        println!(
-            "mouse_position: x: {} - y: {}",
-            state.mouse.x, state.mouse.y
-        );
-
-        let _ = OrbFont::init(
+        let path_list = OrbFont::init(
             canvas,
             100.0,
             Paint::color(Color::rgb(82, 88, 95)).with_line_width(4.0),
@@ -53,5 +47,31 @@ impl<'a, T: Renderer> FontMask<'a, T> {
             OrbParts::HalfRightCircle,
         ])
         .draw();
+
+        for (_, comp) in path_list.iter().enumerate() {
+            let is_in_path = canvas.contains_point(
+                &comp.0,
+                state.mouse.x as f32,
+                state.mouse.y as f32,
+                femtovg::FillRule::EvenOdd,
+            );
+
+            if is_in_path == true {
+                match comp.2 {
+                    FontFillKind::Stroke => {
+                        canvas.stroke_path(
+                            &comp.0,
+                            &comp.1.clone().with_color(Color::rgb(255, 255, 255)),
+                        );
+                    }
+                    FontFillKind::Path => {
+                        canvas.fill_path(
+                            &comp.0,
+                            &comp.1.clone().with_color(Color::rgb(255, 255, 255)),
+                        );
+                    }
+                }
+            }
+        }
     }
 }
