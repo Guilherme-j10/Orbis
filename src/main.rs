@@ -49,7 +49,7 @@ fn draw_mask<T: Renderer>(
     cx: f32,
     cy: f32,
 ) -> () {
-    FontMask::new(canvas, state, (cx, cy), "a");
+    FontMask::initialize(canvas, state, (cx, cy), "a");
 }
 
 fn run<W: WindowSurface + 'static>(

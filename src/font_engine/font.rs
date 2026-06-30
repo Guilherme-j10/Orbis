@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use femtovg::{Canvas, Paint, Path, Renderer};
+use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
 pub type ContextPoints = (f32, f32);
 type OrbPartCode = u8;
@@ -111,6 +111,11 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     pub fn draw_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (cx - (self.base_circle_r / 2.0), cy);
+
+        let mut solid_path = Path::new();
+        solid_path.rect(cx - self.base_circle_r, inity - (5.5 / 2.0), 20.0, 5.5);
+        self.canvas.fill_path(&solid_path, &Paint::color(Color::rgb(255, 0, 0)));
+
         let mut path = Path::new();
         path.move_to(initx - 5.5, inity);
         path.line_to(initx - 25.0, inity);

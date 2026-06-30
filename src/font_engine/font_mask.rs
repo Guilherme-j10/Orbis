@@ -3,23 +3,18 @@ use std::{rc::Rc, sync::RwLock};
 use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
-    font_engine::font::{ContextPoints, FontFillKind, OrbFont, OrbParts}, interfaces::app::AppState,
+    font_engine::font::{ContextPoints, FontFillKind, OrbFont, OrbParts},
+    interfaces::app::AppState,
 };
 
-pub struct FontMask<'a, T: Renderer> {
-    bind_char: &'static str,
-    app_state: Rc<RwLock<AppState>>,
-    canvas: &'a mut Canvas<T>,
-    font_instance: OrbFont<'a, T>,
-    cp: ContextPoints,
-}
+pub struct FontMask;
 
 // encontrar uma forma de controlar um estado
 // encontrar uma forma de obter as coordenadas do mouse
 
-impl<'a, T: Renderer> FontMask<'a, T> {
-    pub fn new(
-        canvas: &'a mut Canvas<T>,
+impl FontMask {
+    pub fn initialize<T: Renderer>(
+        canvas: &mut Canvas<T>,
         state: Rc<RwLock<AppState>>,
         cp: ContextPoints,
         bind_char: &'static str,
