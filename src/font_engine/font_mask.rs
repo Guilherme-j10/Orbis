@@ -17,7 +17,7 @@ impl FontMask {
         canvas: &mut Canvas<T>,
         state: Rc<RwLock<AppState>>,
         cp: ContextPoints,
-        bind_char: &'static str,
+        _bind_char: &'static str,
     ) -> () {
         let state = state.read().expect("Fail to read app state");
         let path_list = OrbFont::init(
@@ -43,28 +43,37 @@ impl FontMask {
         ])
         .draw();
 
-        for (_, comp) in path_list.iter().enumerate() {
+        for (_, mut comp) in path_list.into_iter().enumerate() {
+            let color = comp.1.with_color(Color::rgb(255, 255, 255));
             let is_in_path = canvas.contains_point(
                 &comp.0,
                 state.mouse.x as f32,
                 state.mouse.y as f32,
-                femtovg::FillRule::EvenOdd,
+                femtovg::FillRule::NonZero,
             );
 
             if is_in_path == true {
                 match comp.2 {
                     FontFillKind::Stroke => {
-                        canvas.stroke_path(
-                            &comp.0,
-                            &comp.1.clone().with_color(Color::rgb(255, 255, 255)),
-                        );
+                        canvas.stroke_path(&comp.0, &color);
                     }
                     FontFillKind::Path => {
-                        canvas.fill_path(
-                            &comp.0,
-                            &comp.1.clone().with_color(Color::rgb(255, 255, 255)),
+                        canvas.fill_path(&comp.0, &color);
+                    }
+                    _ => {}
+                }
+            } else {
+                match comp.2 {
+                    FontFillKind::Rotate(font) => {
+                        font.render(
+                            state.mouse.x as f32,
+                            state.mouse.y as f32,
+                            canvas,
+                            &mut comp.0,
+                            &color,
                         );
                     }
+                    _ => {}
                 }
             }
         }
