@@ -23,7 +23,7 @@ impl FontMask {
         let path_list = OrbFont::init(
             canvas,
             100.0,
-            Paint::color(Color::rgb(82, 88, 95)).with_line_width(4.0),
+            Paint::color(Color::rgb(33, 33, 44)).with_line_width(4.0),
             (cp.0, cp.1),
         )
         .with_box(false)

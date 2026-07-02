@@ -25,7 +25,7 @@ fn main() {
 fn file_system_container<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSize<u32>) -> () {
     let mut main_container = Path::new();
     main_container.rect(0.0, 0.0, ASIDE_MENU_WIDTH, size.height as f32);
-    canvas.fill_path(&main_container, &Paint::color(Color::rgb(46, 52, 61)));
+    canvas.fill_path(&main_container, &Paint::color(Color::rgb(16, 16, 21)));
 }
 
 fn font_editor<T: Renderer>(
@@ -37,7 +37,7 @@ fn font_editor<T: Renderer>(
 
     let mut main_container = Path::new();
     main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
-    canvas.fill_path(&main_container, &Paint::color(Color::rgb(40, 43, 51)));
+    canvas.fill_path(&main_container, &Paint::color(Color::rgb(10, 10, 14)));
 
     draw_mask(canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
     draw_mask(canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
