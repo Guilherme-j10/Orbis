@@ -248,7 +248,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.arc(
             initx,
             inity,
-            15.0,
+            self.base_circle_r,
             PI * 1.5,
             PI / 2.0,
             femtovg::Solidity::Solid,
@@ -268,7 +268,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.arc(
             initx,
             inity,
-            15.0,
+            self.base_circle_r,
             PI / 2.0,
             PI * 1.5,
             femtovg::Solidity::Solid,
