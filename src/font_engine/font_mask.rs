@@ -22,7 +22,7 @@ impl FontMask {
         let state = state.read().expect("Fail to read app state");
         let path_list = OrbFont::init(
             canvas,
-            100.0,
+            50.0,
             Paint::color(Color::rgb(33, 33, 44)).with_line_width(4.0),
             (cp.0, cp.1),
         )

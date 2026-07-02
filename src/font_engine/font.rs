@@ -2,6 +2,8 @@ use std::f32::consts::PI;
 
 use femtovg::{Canvas, Paint, Path, Renderer};
 
+use crate::utils::interpolation;
+
 pub struct FillRotate {
     x: f32,
     y: f32,
@@ -59,7 +61,12 @@ pub struct OrbFont<'a, T: Renderer> {
 
 impl<'a, T: Renderer> OrbFont<'a, T> {
     pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, color: Paint, cp: (f32, f32)) -> Self {
-        let (bw, bh) = (100.0, 80.0);
+        let font_size_input: [f32; 2] = [12.0, 50.0];
+
+        let (bw, bh) = (
+            interpolation(fsize, font_size_input.to_vec(), [40.0, 100.0].to_vec()),
+            interpolation(fsize, font_size_input.to_vec(), [32.0, 80.0].to_vec()),
+        );
 
         let h_leg_w = 20.0;
         let h_leg_h = 5.5;
@@ -262,7 +269,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         let (initx, inity) = (
             cx + (((self.base_circle_r / 2.0) + self.h_leg_w)
                 - (self.default_paint.line_width() * 2.0)),
-            cy
+            cy,
         );
         let mut path = Path::new();
         path.arc(

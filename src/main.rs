@@ -17,6 +17,7 @@ const ASIDE_MENU_WIDTH: f32 = 300.0;
 mod font_engine;
 mod interfaces;
 mod wgpu;
+mod utils;
 
 fn main() {
     wgpu::start_wgpu(1440, 900, "Orbis", false);
