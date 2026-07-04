@@ -40,17 +40,21 @@ fn font_editor<T: Renderer>(
     main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
     canvas.fill_path(&main_container, &Paint::color(Color::rgb(10, 10, 14)));
 
-    draw_mask(canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
-    draw_mask(canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
+    draw_mask(50.0, canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
+    draw_mask(40.0,canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
+    draw_mask(30.0,canvas, state.clone(), bounds.0 + 240.0, bounds.1 + 20.0);
+    draw_mask(20.0,canvas, state.clone(), bounds.0 + 360.0, bounds.1 + 20.0);
+    draw_mask(12.0,canvas, state.clone(), bounds.0 + 420.0, bounds.1 + 20.0);
 }
 
 fn draw_mask<T: Renderer>(
+    font_size: f32,
     canvas: &mut Canvas<T>,
     state: Rc<RwLock<AppState>>,
     cx: f32,
     cy: f32,
 ) -> () {
-    FontMask::initialize(canvas, state, (cx, cy), "a");
+    FontMask::initialize(canvas, state, (cx, cy), font_size, "a");
 }
 
 fn run<W: WindowSurface + 'static>(

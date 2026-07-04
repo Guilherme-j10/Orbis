@@ -17,16 +17,17 @@ impl FontMask {
         canvas: &mut Canvas<T>,
         state: Rc<RwLock<AppState>>,
         cp: ContextPoints,
+        font_size: f32,
         _bind_char: &'static str,
     ) -> () {
         let state = state.read().expect("Fail to read app state");
         let path_list = OrbFont::init(
             canvas,
-            50.0,
-            Paint::color(Color::rgb(33, 33, 44)).with_line_width(4.0),
+            font_size,
+            Paint::color(Color::rgb(33, 33, 44)),
             (cp.0, cp.1),
         )
-        .with_box(false)
+        .with_box(true)
         .with_parts(vec![
             OrbParts::CircleBase,
             OrbParts::CircleSmallCenter,

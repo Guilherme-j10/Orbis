@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use femtovg::{Canvas, Paint, Path, Renderer};
+use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
 use crate::utils::interpolation;
 
@@ -44,23 +44,26 @@ pub enum FontFillKind {
 pub type ContextPoints = (f32, f32);
 type OrbPartCode = u8;
 pub struct OrbFont<'a, T: Renderer> {
-    _fsize: f32, //means width
     default_paint: Paint,
     lag_paint: Paint,
-    _context_point: (f32, f32), // x, y
-    font_center: (f32, f32),    // x, y
+    context_point: (f32, f32), // x, y
+    font_center: (f32, f32),   // x, y
     canvas: &'a mut Canvas<T>,
-    _draw_box: bool,
+    draw_box: bool,
     base_circle_r: f32,
     parts_to_draw: Vec<OrbParts>,
     h_leg_w: f32,
     h_leg_h: f32,
     v_leg_w: f32,
     v_leg_h: f32,
+    lf_angle_d: f32,
+    lr_angle_d: f32,
+    circle_width: f32,
+    box_dimension: (f32, f32),
 }
 
 impl<'a, T: Renderer> OrbFont<'a, T> {
-    pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, color: Paint, cp: (f32, f32)) -> Self {
+    pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, mut color: Paint, cp: (f32, f32)) -> Self {
         let font_size_input: [f32; 2] = [12.0, 50.0];
 
         let (bw, bh) = (
@@ -68,29 +71,45 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             interpolation(fsize, font_size_input.to_vec(), [32.0, 80.0].to_vec()),
         );
 
-        let h_leg_w = 20.0;
-        let h_leg_h = 5.5;
+        let h_leg_w = interpolation(fsize, font_size_input.to_vec(), [12.0, 20.0].to_vec());
+        let h_leg_h = interpolation(fsize, font_size_input.to_vec(), [3.3, 5.5].to_vec());
 
-        let v_leg_w = 5.5;
-        let v_leg_h = 15.0;
+        let v_leg_w = interpolation(fsize, font_size_input.to_vec(), [3.3, 5.5].to_vec());
+        let v_leg_h = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
 
-        let base_circle_r = 15.0;
+        let base_circle_r = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
         let font_center = (cp.0 + bw / 2.0, cp.1 + bh / 2.0);
 
+        color.set_line_width(interpolation(
+            fsize,
+            font_size_input.to_vec(),
+            [2.4, 4.0].to_vec(),
+        ));
+
         let mut lag_paint_default = color.clone();
-        lag_paint_default.set_line_width(5.0);
+        lag_paint_default.set_line_width(interpolation(
+            fsize,
+            font_size_input.to_vec(),
+            [3.0, 5.0].to_vec(),
+        ));
+
+        let lag_left_angle_distance_prop = 0.8;
+        let lag_right_angle_distance_prop = 0.45;
 
         Self {
+            box_dimension: (bw, bh),
+            circle_width: color.line_width(),
+            lf_angle_d: lag_left_angle_distance_prop,
+            lr_angle_d: lag_right_angle_distance_prop,
             h_leg_h,
             h_leg_w,
             v_leg_h,
             v_leg_w,
             canvas,
-            _fsize: fsize,
             default_paint: color,
             lag_paint: lag_paint_default,
-            _context_point: cp,
-            _draw_box: false,
+            context_point: cp,
+            draw_box: false,
             parts_to_draw: vec![],
             font_center,
             base_circle_r,
@@ -99,7 +118,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn with_box(self, draw_box: bool) -> Self {
         Self {
-            _draw_box: draw_box,
+            draw_box: draw_box,
             ..self
         }
     }
@@ -112,7 +131,19 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     }
 
     pub fn draw(&mut self) -> Vec<(Path, Paint, FontFillKind)> {
-        if self._draw_box == true {}
+        if self.draw_box == true {
+            let mut path = Path::new();
+            path.rect(
+                self.context_point.0,
+                self.context_point.1,
+                self.box_dimension.0,
+                self.box_dimension.1,
+            );
+
+            let mut box_color = Paint::color(Color::rgb(255, 0, 0));
+            box_color.set_line_width(1.0);
+            self.canvas.stroke_path(&path, &box_color);
+        }
 
         let mut path_list: Vec<(Path, Paint, FontFillKind)> = vec![];
         let parts_to_draw = self.parts_to_draw.clone();
@@ -174,12 +205,11 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.h_leg_h;
         let line_width = self.h_leg_w;
 
         let (initx, inity) = (
-            cx - (self.base_circle_r * 2.0) - circle_width,
+            cx - (self.base_circle_r * 2.0) - self.circle_width,
             cy - (line_height / 2.0),
         );
 
@@ -192,12 +222,11 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.h_leg_h;
         let line_width = self.h_leg_w;
 
         let (initx, inity) = (
-            cx + self.base_circle_r - (circle_width / 2.0),
+            cx + self.base_circle_r - (self.circle_width / 2.0),
             cy - (line_height / 2.0),
         );
 
@@ -210,13 +239,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_top_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
 
         let (initx, inity) = (
             cx - (line_width / 2.0),
-            cy - (self.base_circle_r * 2.0) + (circle_width / 2.0),
+            cy - (self.base_circle_r * 2.0) + (self.circle_width / 2.0),
         );
 
         let mut path = Path::new();
@@ -228,13 +256,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_bottom_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
 
         let (initx, inity) = (
             cx - (line_width / 2.0),
-            cy + (self.base_circle_r) - (circle_width / 2.0),
+            cy + (self.base_circle_r) - (self.circle_width / 2.0),
         );
 
         let mut path = Path::new();
@@ -247,8 +274,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     pub fn draw_half_left_circle(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (
-            cx - (((self.base_circle_r / 2.0) + self.h_leg_w)
-                - (self.default_paint.line_width() * 2.0)),
+            cx - (((self.base_circle_r / 2.0) + self.h_leg_w) - (self.circle_width * 2.0)),
             cy,
         );
         let mut path = Path::new();
@@ -267,8 +293,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     pub fn draw_half_right_circle(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (
-            cx + (((self.base_circle_r / 2.0) + self.h_leg_w)
-                - (self.default_paint.line_width() * 2.0)),
+            cx + (((self.base_circle_r / 2.0) + self.h_leg_w) - (self.circle_width * 2.0)),
             cy,
         );
         let mut path = Path::new();
@@ -286,13 +311,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_top_angle_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
 
         let (initx, inity) = (
-            cx - ((circle_width / 2.0) * 6.0),
-            cy - (self.base_circle_r * 2.0) + circle_width,
+            cx - self.base_circle_r * self.lf_angle_d,
+            cy - (self.base_circle_r * 2.0) + self.circle_width,
         );
 
         let mut path = Path::new();
@@ -329,13 +353,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_top_angle_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
 
         let (initx, inity) = (
-            cx + ((circle_width / 2.0) * 3.4),
-            cy - (self.base_circle_r * 2.0) + circle_width,
+            cx + self.base_circle_r * self.lr_angle_d,
+            cy - (self.base_circle_r * 2.0) + self.circle_width,
         );
 
         let mut path = Path::new();
@@ -372,13 +395,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_bottom_angle_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
 
         let (initx, inity) = (
-            cx - ((circle_width / 2.0) * 6.0),
-            cy + (self.base_circle_r) - circle_width,
+            cx - self.base_circle_r * self.lf_angle_d,
+            cy + (self.base_circle_r) - self.circle_width,
         );
 
         let mut path = Path::new();
@@ -415,13 +437,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
     pub fn draw_bottom_angle_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
         let (cx, cy) = self.font_center;
-        let circle_width = self.default_paint.line_width();
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
 
         let (initx, inity) = (
-            cx + ((circle_width / 2.0) * 3.4),
-            cy + (self.base_circle_r) - circle_width,
+            cx + self.base_circle_r * self.lr_angle_d,
+            cy + (self.base_circle_r) - self.circle_width,
         );
 
         let mut path = Path::new();
