@@ -63,13 +63,28 @@ pub struct OrbFont<'a, T: Renderer> {
 }
 
 impl<'a, T: Renderer> OrbFont<'a, T> {
+    pub fn with_box(self, draw_box: bool) -> Self {
+        Self {
+            draw_box: draw_box,
+            ..self
+        }
+    }
+
+    pub fn with_parts(self, parts: Vec<OrbParts>) -> Self {
+        Self {
+            parts_to_draw: parts,
+            ..self
+        }
+    }
+
     pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, mut color: Paint, cp: (f32, f32)) -> Self {
         let font_size_input: [f32; 2] = [12.0, 50.0];
 
-        let (bw, bh) = (
-            interpolation(fsize, font_size_input.to_vec(), [40.0, 100.0].to_vec()),
-            interpolation(fsize, font_size_input.to_vec(), [32.0, 80.0].to_vec()),
-        );
+        if fsize > *font_size_input.get(1).unwrap() {
+            panic!("font size great than 50")
+        } else if fsize < *font_size_input.get(0).unwrap() {
+            panic!("font size is lass than 12")
+        }
 
         let h_leg_w = interpolation(fsize, font_size_input.to_vec(), [12.0, 20.0].to_vec());
         let h_leg_h = interpolation(fsize, font_size_input.to_vec(), [3.3, 5.5].to_vec());
@@ -78,6 +93,12 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         let v_leg_h = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
 
         let base_circle_r = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
+
+        let width_box = ((h_leg_w + base_circle_r) * 2.0) + 5.5;
+        let height_box = (v_leg_h + base_circle_r) * 2.0;
+
+        let (bw, bh) = (width_box, height_box);
+
         let font_center = (cp.0 + bw / 2.0, cp.1 + bh / 2.0);
 
         color.set_line_width(interpolation(
@@ -113,20 +134,6 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             parts_to_draw: vec![],
             font_center,
             base_circle_r,
-        }
-    }
-
-    pub fn with_box(self, draw_box: bool) -> Self {
-        Self {
-            draw_box: draw_box,
-            ..self
-        }
-    }
-
-    pub fn with_parts(self, parts: Vec<OrbParts>) -> Self {
-        Self {
-            parts_to_draw: parts,
-            ..self
         }
     }
 

@@ -5,6 +5,15 @@ pub struct MousePosition {
 }
 
 #[derive(Debug)]
+pub enum AppScreens {
+    Initial,
+    FontEditor,
+    RenderFileContent,
+    Default
+}
+
+#[derive(Debug)]
 pub struct AppState {
-    pub mouse: MousePosition
+    pub mouse: MousePosition,
+    pub current_screen: AppScreens
 }

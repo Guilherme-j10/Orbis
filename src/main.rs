@@ -8,7 +8,7 @@ use winit::{dpi::PhysicalSize, event::WindowEvent, window::Window};
 
 use crate::{
     font_engine::font_mask::FontMask,
-    interfaces::app::{AppState, MousePosition},
+    interfaces::app::{AppScreens, AppState, MousePosition},
     wgpu::{Callbacks, WindowSurface},
 };
 
@@ -16,8 +16,9 @@ const ASIDE_MENU_WIDTH: f32 = 300.0;
 
 mod font_engine;
 mod interfaces;
-mod wgpu;
+mod screens;
 mod utils;
+mod wgpu;
 
 fn main() {
     wgpu::start_wgpu(1440, 900, "Orbis", false);
@@ -29,33 +30,33 @@ fn file_system_container<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSiz
     canvas.fill_path(&main_container, &Paint::color(Color::rgb(16, 16, 21)));
 }
 
-fn font_editor<T: Renderer>(
-    canvas: &mut Canvas<T>,
-    size: &PhysicalSize<u32>,
-    state: Rc<RwLock<AppState>>,
-) -> () {
-    let bounds = (ASIDE_MENU_WIDTH, 0.0);
+// fn font_editor<T: Renderer>(
+//     canvas: &mut Canvas<T>,
+//     size: &PhysicalSize<u32>,
+//     state: Rc<RwLock<AppState>>,
+// ) -> () {
+//     let bounds = (ASIDE_MENU_WIDTH, 0.0);
 
-    let mut main_container = Path::new();
-    main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
-    canvas.fill_path(&main_container, &Paint::color(Color::rgb(10, 10, 14)));
+//     let mut main_container = Path::new();
+//     main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
+//     canvas.fill_path(&main_container, &Paint::color(Color::rgb(10, 10, 14)));
 
-    draw_mask(50.0, canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
-    draw_mask(40.0,canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
-    draw_mask(30.0,canvas, state.clone(), bounds.0 + 240.0, bounds.1 + 20.0);
-    draw_mask(20.0,canvas, state.clone(), bounds.0 + 360.0, bounds.1 + 20.0);
-    draw_mask(12.0,canvas, state.clone(), bounds.0 + 420.0, bounds.1 + 20.0);
-}
+//     draw_mask(50.0, canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
+//     draw_mask(40.0,canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
+//     draw_mask(30.0,canvas, state.clone(), bounds.0 + 240.0, bounds.1 + 20.0);
+//     draw_mask(20.0,canvas, state.clone(), bounds.0 + 360.0, bounds.1 + 20.0);
+//     draw_mask(12.0,canvas, state.clone(), bounds.0 + 420.0, bounds.1 + 20.0);
+// }
 
-fn draw_mask<T: Renderer>(
-    font_size: f32,
-    canvas: &mut Canvas<T>,
-    state: Rc<RwLock<AppState>>,
-    cx: f32,
-    cy: f32,
-) -> () {
-    FontMask::initialize(canvas, state, (cx, cy), font_size, "a");
-}
+// fn draw_mask<T: Renderer>(
+//     font_size: f32,
+//     canvas: &mut Canvas<T>,
+//     state: Rc<RwLock<AppState>>,
+//     cx: f32,
+//     cy: f32,
+// ) -> () {
+//     FontMask::initialize(canvas, state, (cx, cy), font_size, "a");
+// }
 
 fn run<W: WindowSurface + 'static>(
     mut canvas: Canvas<W::Renderer>,
@@ -64,6 +65,7 @@ fn run<W: WindowSurface + 'static>(
 ) -> Callbacks {
     let app_state = Rc::new(RwLock::new(AppState {
         mouse: MousePosition::default(),
+        current_screen: AppScreens::Default,
     }));
 
     Callbacks {
@@ -80,8 +82,8 @@ fn run<W: WindowSurface + 'static>(
 
                 let state_wrapper = app_state.clone();
 
-                file_system_container(&mut canvas, &size);
-                font_editor(&mut canvas, &size, state_wrapper.clone());
+                // file_system_container(&mut canvas, &size);
+                // font_editor(&mut canvas, &size, state_wrapper.clone());
 
                 surface.present(&mut canvas);
             }
@@ -92,7 +94,7 @@ fn run<W: WindowSurface + 'static>(
                 let state_wrapper = app_state.clone();
                 let mut state = state_wrapper
                     .write()
-                    .expect("Fail to aquare the writer state");
+                    .expect("Fail to aquire the writer state");
 
                 state.mouse.x = position.x;
                 state.mouse.y = position.y
