@@ -1,3 +1,5 @@
+use femtovg::FontId;
+
 #[derive(Debug, Default)]
 pub struct MousePosition {
     pub x: f64, 
@@ -8,12 +10,12 @@ pub struct MousePosition {
 pub enum AppScreens {
     Initial,
     FontEditor,
-    RenderFileContent,
-    Default
+    OpenedFile,
 }
 
 #[derive(Debug)]
 pub struct AppState {
     pub mouse: MousePosition,
-    pub current_screen: AppScreens
+    pub current_screen: AppScreens,
+    pub font_ids: Vec<FontId>
 }

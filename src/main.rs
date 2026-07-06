@@ -1,4 +1,5 @@
 use std::{
+    path::PathBuf,
     rc::Rc,
     sync::{Arc, RwLock},
 };
@@ -7,13 +8,14 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::{dpi::PhysicalSize, event::WindowEvent, window::Window};
 
 use crate::{
-    font_engine::font_mask::FontMask,
     interfaces::app::{AppScreens, AppState, MousePosition},
+    screens::controller::Controller,
     wgpu::{Callbacks, WindowSurface},
 };
 
 const ASIDE_MENU_WIDTH: f32 = 300.0;
 
+mod core;
 mod font_engine;
 mod interfaces;
 mod screens;
@@ -65,8 +67,21 @@ fn run<W: WindowSurface + 'static>(
 ) -> Callbacks {
     let app_state = Rc::new(RwLock::new(AppState {
         mouse: MousePosition::default(),
-        current_screen: AppScreens::Default,
+        current_screen: AppScreens::Initial,
+        font_ids: vec![],
     }));
+
+    let state_app = app_state.clone();
+    let mut state = state_app.write().unwrap();
+    let font_path = PathBuf::from("font/saira");
+    match font_path.canonicalize() {
+        Ok(path) => {
+            state.font_ids = canvas.add_font_dir(path).expect("failed to load font");
+        }
+        Err(_) => {
+            panic!("font path dont found");
+        }
+    }
 
     Callbacks {
         window_event: Box::new(move |event, event_loop| match event {
@@ -78,12 +93,10 @@ fn run<W: WindowSurface + 'static>(
                 let size = window.inner_size();
 
                 canvas.set_size(size.width, size.height, dpi_factor as f32);
-                canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(40, 43, 51));
+                canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(0, 0, 0));
 
                 let state_wrapper = app_state.clone();
-
-                // file_system_container(&mut canvas, &size);
-                // font_editor(&mut canvas, &size, state_wrapper.clone());
+                Controller::render(&mut canvas, state_wrapper, &size);
 
                 surface.present(&mut canvas);
             }

@@ -151,7 +151,7 @@ impl ApplicationHandler for WgpuApp {
 
         let mut canvas = Canvas::new(renderer).expect("Cannot create canvas");
         canvas.set_size(width, height, window.scale_factor() as f32);
-        canvas.clear_rect(0, 0, width, height, Color::rgb(40, 43, 51));
+        canvas.clear_rect(0, 0, width, height, Color::rgb(10, 10, 14));
         demo_surface.present(&mut canvas);
 
         window.request_redraw();
