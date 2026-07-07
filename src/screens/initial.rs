@@ -30,8 +30,6 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
 
         canvas.fill_path(&screen, &Paint::color(Color::rgb(10, 10, 14)));
 
-        FontMask::initialize(canvas, app_state.clone(), (10.0, 10.0), 50.0, "a");
-
         Self {
             canvas,
             app_state,
