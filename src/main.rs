@@ -1,19 +1,13 @@
-use std::{
-    path::PathBuf,
-    rc::Rc,
-    sync::{Arc, RwLock},
-};
+use std::{cell::{Cell, RefCell}, path::PathBuf, rc::Rc, sync::Arc};
 
-use femtovg::{Canvas, Color, Paint, Path, Renderer};
-use winit::{dpi::PhysicalSize, event::WindowEvent, window::Window};
+use femtovg::{Canvas, Color};
+use winit::{event::WindowEvent, window::Window};
 
 use crate::{
     interfaces::app::{AppScreens, AppState, MousePosition},
     screens::controller::Controller,
     wgpu::{Callbacks, WindowSurface},
 };
-
-const ASIDE_MENU_WIDTH: f32 = 300.0;
 
 mod core;
 mod font_engine;
@@ -26,62 +20,30 @@ fn main() {
     wgpu::start_wgpu(1440, 900, "Orbis", false);
 }
 
-fn file_system_container<T: Renderer>(canvas: &mut Canvas<T>, size: &PhysicalSize<u32>) -> () {
-    let mut main_container = Path::new();
-    main_container.rect(0.0, 0.0, ASIDE_MENU_WIDTH, size.height as f32);
-    canvas.fill_path(&main_container, &Paint::color(Color::rgb(16, 16, 21)));
-}
-
-// fn font_editor<T: Renderer>(
-//     canvas: &mut Canvas<T>,
-//     size: &PhysicalSize<u32>,
-//     state: Rc<RwLock<AppState>>,
-// ) -> () {
-//     let bounds = (ASIDE_MENU_WIDTH, 0.0);
-
-//     let mut main_container = Path::new();
-//     main_container.rect(ASIDE_MENU_WIDTH, 0.0, size.width as f32, size.height as f32);
-//     canvas.fill_path(&main_container, &Paint::color(Color::rgb(10, 10, 14)));
-
-//     draw_mask(50.0, canvas, state.clone(), bounds.0 + 20.0, bounds.1 + 20.0);
-//     draw_mask(40.0,canvas, state.clone(), bounds.0 + 120.0, bounds.1 + 20.0);
-//     draw_mask(30.0,canvas, state.clone(), bounds.0 + 240.0, bounds.1 + 20.0);
-//     draw_mask(20.0,canvas, state.clone(), bounds.0 + 360.0, bounds.1 + 20.0);
-//     draw_mask(12.0,canvas, state.clone(), bounds.0 + 420.0, bounds.1 + 20.0);
-// }
-
-// fn draw_mask<T: Renderer>(
-//     font_size: f32,
-//     canvas: &mut Canvas<T>,
-//     state: Rc<RwLock<AppState>>,
-//     cx: f32,
-//     cy: f32,
-// ) -> () {
-//     FontMask::initialize(canvas, state, (cx, cy), font_size, "a");
-// }
-
 fn run<W: WindowSurface + 'static>(
     mut canvas: Canvas<W::Renderer>,
     mut surface: W,
     window: Arc<Window>,
 ) -> Callbacks {
-    let app_state = Rc::new(RwLock::new(AppState {
-        mouse: MousePosition::default(),
-        current_screen: AppScreens::Initial,
-        font_ids: vec![],
-    }));
+    let app_state = Rc::new(AppState {
+        mouse: RefCell::new(MousePosition::default()),
+        current_screen: Cell::new(AppScreens::Initial),
+        font_ids: RefCell::new(vec![]),
+        had_click: RefCell::new(None),
+    });
 
-    let state_app = app_state.clone();
-    let mut state = state_app.write().unwrap();
-    let font_path = PathBuf::from("font/saira");
+    let mut fonts_ids = app_state.font_ids.borrow_mut();
+    let font_path = PathBuf::from("font/Saira");
     match font_path.canonicalize() {
         Ok(path) => {
-            state.font_ids = canvas.add_font_dir(path).expect("failed to load font");
+            *fonts_ids = canvas.add_font_dir(path).expect("failed to load font");
         }
-        Err(_) => {
-            panic!("font path dont found");
+        Err(e) => {
+            panic!("font path dont found {e}");
         }
     }
+
+    let state = app_state.clone();
 
     Callbacks {
         window_event: Box::new(move |event, event_loop| match event {
@@ -95,22 +57,26 @@ fn run<W: WindowSurface + 'static>(
                 canvas.set_size(size.width, size.height, dpi_factor as f32);
                 canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(0, 0, 0));
 
-                let state_wrapper = app_state.clone();
+                let state_wrapper = state.clone();
                 Controller::render(&mut canvas, state_wrapper, &size);
 
                 surface.present(&mut canvas);
+            }
+            WindowEvent::MouseInput {
+                device_id: _,
+                state: mouse_state,
+                button: _,
+            } => {
+                let mut had_click = state.had_click.borrow_mut();
+                *had_click = Some(mouse_state);
             }
             WindowEvent::CursorMoved {
                 device_id: _,
                 position,
             } => {
-                let state_wrapper = app_state.clone();
-                let mut state = state_wrapper
-                    .write()
-                    .expect("Fail to aquire the writer state");
-
-                state.mouse.x = position.x;
-                state.mouse.y = position.y
+                let mut mpos = state.mouse.borrow_mut();
+                mpos.x = position.x;
+                mpos.y = position.y
             }
             WindowEvent::CloseRequested => event_loop.exit(),
             _ => (),

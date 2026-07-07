@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
-use crate::utils::interpolation;
+use crate::{interfaces::app::OrbPartCode, utils::interpolation};
 
 pub struct FillRotate {
     x: f32,
@@ -41,8 +41,6 @@ pub enum FontFillKind {
     Rotate(FillRotate),
 }
 
-pub type ContextPoints = (f32, f32);
-type OrbPartCode = u8;
 pub struct OrbFont<'a, T: Renderer> {
     default_paint: Paint,
     lag_paint: Paint,

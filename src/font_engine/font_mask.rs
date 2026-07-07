@@ -1,26 +1,21 @@
-use std::{rc::Rc, sync::RwLock};
-
 use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
-    font_engine::font::{ContextPoints, FontFillKind, OrbFont, OrbParts},
-    interfaces::app::AppState,
+    font_engine::font::{FontFillKind, OrbFont, OrbParts},
+    interfaces::app::{AppStateType, ContextPoints},
 };
 
 pub struct FontMask;
 
-// encontrar uma forma de controlar um estado
-// encontrar uma forma de obter as coordenadas do mouse
-
 impl FontMask {
     pub fn initialize<T: Renderer>(
         canvas: &mut Canvas<T>,
-        state: Rc<RwLock<AppState>>,
+        state: AppStateType,
         cp: ContextPoints,
         font_size: f32,
         _bind_char: &'static str,
     ) -> () {
-        let state = state.read().expect("Fail to read app state");
+        let mouse_position = state.mouse.borrow();
         let path_list = OrbFont::init(
             canvas,
             font_size,
@@ -48,8 +43,8 @@ impl FontMask {
             let color = comp.1.with_color(Color::rgb(255, 255, 255));
             let is_in_path = canvas.contains_point(
                 &comp.0,
-                state.mouse.x as f32,
-                state.mouse.y as f32,
+                mouse_position.x as f32,
+                mouse_position.y as f32,
                 femtovg::FillRule::NonZero,
             );
 
@@ -67,8 +62,8 @@ impl FontMask {
                 match comp.2 {
                     FontFillKind::Rotate(font) => {
                         font.render(
-                            state.mouse.x as f32,
-                            state.mouse.y as f32,
+                            mouse_position.x as f32,
+                            mouse_position.y as f32,
                             canvas,
                             &mut comp.0,
                             &color,
