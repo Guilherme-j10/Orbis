@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::{dpi::PhysicalSize, event::ElementState};
 
-use crate::{font_engine::font_mask::FontMask, interfaces::app::{AppScreens, AppStateType}};
+use crate::interfaces::app::{AppScreens, AppStateType};
 
 pub struct InitialScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
@@ -14,7 +14,7 @@ pub struct InitialScreen<'a, T: Renderer> {
 }
 
 impl<'a, T: Renderer> InitialScreen<'a, T> {
-    pub fn render(
+    pub fn initialize(
         canvas: &'a mut Canvas<T>,
         app_state: AppStateType,
         bounds: (f32, f32),
@@ -39,7 +39,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
         }
     }
 
-    pub fn resolve_font_map(&mut self) -> () {
+    pub fn render(&mut self) -> () {
         let fonts_ids = self.app_state.font_ids.borrow();
         let have_font_map = false;
 

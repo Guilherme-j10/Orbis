@@ -1,20 +1,18 @@
-use std::{rc::Rc, sync::RwLock};
-
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
-use crate::interfaces::app::AppState;
+use crate::interfaces::app::AppStateType;
 
 pub struct FontEditorScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
-    app_state: Rc<RwLock<AppState>>,
+    app_state: AppStateType,
     bounds: (f32, f32),
 }
 
 impl<'a, T: Renderer> FontEditorScreen<'a, T> {
-    pub fn new(
+    pub fn initialize(
         canvas: &'a mut Canvas<T>,
-        app_state: Rc<RwLock<AppState>>,
+        app_state: AppStateType,
         bounds: (f32, f32),
         psize: &PhysicalSize<u32>,
     ) -> Self {
