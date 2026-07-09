@@ -13,16 +13,18 @@ impl FontMask {
         state: AppStateType,
         cp: ContextPoints,
         font_size: f32,
+        padding: Option<f32>,
         _bind_char: &'static str,
     ) -> () {
         let mouse_position = state.mouse.borrow();
         let path_list = OrbFont::init(
             canvas,
             font_size,
+            padding,
             Paint::color(Color::rgb(33, 33, 44)),
             (cp.0, cp.1),
         )
-        .with_box(true)
+        .with_box(false)
         .with_parts(vec![
             OrbParts::CircleBase,
             OrbParts::CircleSmallCenter,

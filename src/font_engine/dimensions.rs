@@ -5,11 +5,11 @@ pub struct FontDimension {
     base_circle_r: f32,
     h_leg_w: f32,
     v_leg_h: f32,
-    h_padding: f32,
+    padding: f32,
 }
 
 impl FontDimension {
-    pub fn new(fsize: f32) -> Self {
+    pub fn new(fsize: f32, padding: f32) -> Self {
         let font_size_input: [f32; 2] = [12.0, 50.0];
 
         if fsize > *font_size_input.get(1).unwrap() {
@@ -26,15 +26,15 @@ impl FontDimension {
             font_size: fsize,
             base_circle_r,
             h_leg_w,
-            h_padding: 5.5,
+            padding: padding,
             v_leg_h,
         }
     }
 
-    pub fn get_complete_width(&self) -> (f32, f32) {
+    pub fn get_complete_width(&self) -> (f32, f32) { // (total_h, total_v)
         (
-            ((self.h_leg_w + self.base_circle_r) * 2.0) + self.h_padding,
-            (self.v_leg_h + self.base_circle_r) * 2.0,
+            ((self.h_leg_w + self.base_circle_r) * 2.0) + self.padding,
+            ((self.v_leg_h + self.base_circle_r) * 2.0) + self.padding,
         )
     }
 }

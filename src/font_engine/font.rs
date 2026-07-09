@@ -75,7 +75,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         }
     }
 
-    pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, mut color: Paint, cp: (f32, f32)) -> Self {
+    pub fn init(canvas: &'a mut Canvas<T>, fsize: f32, padding: Option<f32>, mut color: Paint, cp: (f32, f32)) -> Self {
         let font_size_input: [f32; 2] = [12.0, 50.0];
 
         if fsize > *font_size_input.get(1).unwrap() {
@@ -92,8 +92,9 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
         let base_circle_r = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
 
-        let width_box = ((h_leg_w + base_circle_r) * 2.0) + 5.5;
-        let height_box = (v_leg_h + base_circle_r) * 2.0;
+        let padding = padding.unwrap_or(5.5);
+        let width_box = ((h_leg_w + base_circle_r) * 2.0) + padding;
+        let height_box = (v_leg_h + base_circle_r) * 2.0 + padding;
 
         let (bw, bh) = (width_box, height_box);
 

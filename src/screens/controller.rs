@@ -23,6 +23,8 @@ impl Controller {
             AppScreens::FontEditor => {
                 let mut init =
                     FontEditorScreen::initialize(canvas, app_state.clone(), (0.0, 0.0), &psize);
+                init.render();
+                
             }
             AppScreens::OpenedFile => {}
         }
