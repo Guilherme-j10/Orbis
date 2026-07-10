@@ -2,7 +2,7 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
-    font_engine::{dimensions::FontDimension, font_mask::FontMask},
+    font_engine::{dimensions::FontDimension, font::FontPadding, font_mask::FontMask},
     interfaces::app::AppStateType,
 };
 
@@ -42,9 +42,12 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         let horizontal_margin = 300.0;
         let margin_top = 100.0;
         let font_size = 50.0;
-        let padding = 5.5;
+        let padding = FontPadding {
+            horizontal: 20.0,
+            vertical: 5.5,
+        };
 
-        let font_dimension = FontDimension::new(font_size, padding);
+        let font_dimension = FontDimension::new(font_size, &padding);
 
         let chars: Vec<&str> = "abcdefghijklmnopqrstuvwxyz0123456789"
             .trim()
@@ -76,7 +79,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                         self.app_state.clone(),
                         (position_x, position_y),
                         font_size,
-                        Some(padding),
+                        Some(padding.clone()),
                         c,
                     );
                 }

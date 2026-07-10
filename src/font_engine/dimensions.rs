@@ -1,15 +1,15 @@
-use crate::utils::interpolation;
+use crate::{font_engine::font::FontPadding, utils::interpolation};
 
-pub struct FontDimension {
+pub struct FontDimension<'a> {
     font_size: f32,
     base_circle_r: f32,
     h_leg_w: f32,
     v_leg_h: f32,
-    padding: f32,
+    padding: &'a FontPadding,
 }
 
-impl FontDimension {
-    pub fn new(fsize: f32, padding: f32) -> Self {
+impl<'a> FontDimension<'a> {
+    pub fn new(fsize: f32, padding: &'a FontPadding) -> Self {
         let font_size_input: [f32; 2] = [12.0, 50.0];
 
         if fsize > *font_size_input.get(1).unwrap() {
@@ -31,10 +31,11 @@ impl FontDimension {
         }
     }
 
-    pub fn get_complete_width(&self) -> (f32, f32) { // (total_h, total_v)
+    pub fn get_complete_width(&self) -> (f32, f32) {
+        // (total_h, total_v)
         (
-            ((self.h_leg_w + self.base_circle_r) * 2.0) + self.padding,
-            ((self.v_leg_h + self.base_circle_r) * 2.0) + self.padding,
+            ((self.h_leg_w + self.base_circle_r) * 2.0) + self.padding.horizontal,
+            ((self.v_leg_h + self.base_circle_r) * 2.0) + self.padding.vertical,
         )
     }
 }

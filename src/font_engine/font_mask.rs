@@ -1,7 +1,7 @@
 use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
-    font_engine::font::{FontFillKind, OrbFont, OrbParts},
+    font_engine::font::{FontFillKind, FontPadding, OrbFont, OrbParts},
     interfaces::app::{AppStateType, ContextPoints},
 };
 
@@ -13,7 +13,7 @@ impl FontMask {
         state: AppStateType,
         cp: ContextPoints,
         font_size: f32,
-        padding: Option<f32>,
+        padding: Option<FontPadding>,
         _bind_char: &'static str,
     ) -> () {
         let mouse_position = state.mouse.borrow();
