@@ -7,24 +7,29 @@ use crate::{
 
 pub struct FontMask;
 
+pub struct FontMaskProp<'a, T: Renderer> {
+    pub canvas: &'a mut Canvas<T>,
+    pub state: AppStateType,
+    pub cp: ContextPoints,
+    pub font_size: f32,
+    pub padding: Option<FontPadding>,
+    pub bind_char: &'static str,
+    pub draw_box: Option<bool>
+}
+
 impl FontMask {
-    pub fn initialize<T: Renderer>(
-        canvas: &mut Canvas<T>,
-        state: AppStateType,
-        cp: ContextPoints,
-        font_size: f32,
-        padding: Option<FontPadding>,
-        _bind_char: &'static str,
+    pub fn initialize<'a, T: Renderer>(
+        props: FontMaskProp<'a, T>
     ) -> () {
-        let mouse_position = state.mouse.borrow();
+        let mouse_position = props.state.mouse.borrow();
         let path_list = OrbFont::init(
-            canvas,
-            font_size,
-            padding,
+            props.canvas,
+            props.font_size,
+            props.padding,
             Paint::color(Color::rgb(33, 33, 44)),
-            (cp.0, cp.1),
+            (props.cp.0, props.cp.1),
         )
-        .with_box(false)
+        .with_box(props.draw_box.unwrap_or(false))
         .with_parts(vec![
             OrbParts::CircleBase,
             OrbParts::CircleSmallCenter,
@@ -43,7 +48,7 @@ impl FontMask {
 
         for (_, mut comp) in path_list.into_iter().enumerate() {
             let color = comp.1.with_color(Color::rgb(255, 255, 255));
-            let is_in_path = canvas.contains_point(
+            let is_in_path = props.canvas.contains_point(
                 &comp.0,
                 mouse_position.x as f32,
                 mouse_position.y as f32,
@@ -53,10 +58,10 @@ impl FontMask {
             if is_in_path == true {
                 match comp.2 {
                     FontFillKind::Stroke => {
-                        canvas.stroke_path(&comp.0, &color);
+                        props.canvas.stroke_path(&comp.0, &color);
                     }
                     FontFillKind::Path => {
-                        canvas.fill_path(&comp.0, &color);
+                        props.canvas.fill_path(&comp.0, &color);
                     }
                     _ => {}
                 }
@@ -66,7 +71,7 @@ impl FontMask {
                         font.render(
                             mouse_position.x as f32,
                             mouse_position.y as f32,
-                            canvas,
+                            props.canvas,
                             &mut comp.0,
                             &color,
                         );
