@@ -52,7 +52,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             vertical: 5.5,
         };
 
-        let font_dimension = FontDimension::new(font_size, &padding);
+        let font_dimension = FontDimension::new(&font_size, &padding);
 
         let chars: Vec<&str> = "abcdefghijklmnopqrstuvwxyz0123456789"
             .trim()
@@ -77,7 +77,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         let total_in_line = total_line_size / font_dimension.get_complete_width().0;
 
         for (ci, i) in chars
-            .chunks_exact(total_in_line.floor() as usize)
+            .chunks(total_in_line.floor() as usize)
             .enumerate()
         {
             for (index, c) in i.iter().enumerate() {

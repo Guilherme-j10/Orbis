@@ -9,21 +9,21 @@ pub struct FontDimension<'a> {
 }
 
 impl<'a> FontDimension<'a> {
-    pub fn new(fsize: f32, padding: &'a FontPadding) -> Self {
+    pub fn new(fsize: &f32, padding: &'a FontPadding) -> Self {
         let font_size_input: [f32; 2] = [12.0, 50.0];
 
-        if fsize > *font_size_input.get(1).unwrap() {
+        if fsize > font_size_input.get(1).unwrap() {
             panic!("font size great than 50")
-        } else if fsize < *font_size_input.get(0).unwrap() {
+        } else if fsize < font_size_input.get(0).unwrap() {
             panic!("font size is lass than 12")
         }
 
-        let h_leg_w = interpolation(fsize, font_size_input.to_vec(), [12.0, 20.0].to_vec());
-        let base_circle_r = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
-        let v_leg_h = interpolation(fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
+        let h_leg_w = interpolation(*fsize, font_size_input.to_vec(), [12.0, 20.0].to_vec());
+        let base_circle_r = interpolation(*fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
+        let v_leg_h = interpolation(*fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
 
         Self {
-            font_size: fsize,
+            font_size: *fsize,
             base_circle_r,
             h_leg_w,
             padding: padding,

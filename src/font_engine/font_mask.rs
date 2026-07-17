@@ -14,14 +14,13 @@ pub struct FontMaskProp<'a, T: Renderer> {
     pub font_size: f32,
     pub padding: Option<FontPadding>,
     pub bind_char: &'static str,
-    pub draw_box: Option<bool>
+    pub draw_box: Option<bool>,
 }
 
 impl FontMask {
-    pub fn initialize<'a, T: Renderer>(
-        props: FontMaskProp<'a, T>
-    ) -> () {
+    pub fn initialize<'a, T: Renderer>(props: FontMaskProp<'a, T>) -> () {
         let mouse_position = props.state.mouse.borrow();
+
         let path_list = OrbFont::init(
             props.canvas,
             props.font_size,
@@ -45,6 +44,22 @@ impl FontMask {
             OrbParts::HalfRightCircle,
         ])
         .draw();
+
+        let fonts_ids = props.state.font_ids.borrow();
+        let text_paint = Paint::color(Color::rgb(50, 50, 69))
+            .with_font(&fonts_ids)
+            .with_font_italic(false)
+            .with_font_weight(500.0);
+
+        props
+            .canvas
+            .fill_text(
+                (props.cp.0) + 10.0,
+                (props.cp.1) + 10.0,
+                props.bind_char,
+                &text_paint,
+            )
+            .expect("Failed to draw bind char");
 
         for (_, mut comp) in path_list.into_iter().enumerate() {
             let color = comp.1.with_color(Color::rgb(255, 255, 255));
