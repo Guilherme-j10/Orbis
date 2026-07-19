@@ -1,10 +1,12 @@
+use std::{cell::Cell, collections::HashMap};
+
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
     font_engine::{
         dimensions::FontDimension,
-        font::FontPadding,
+        font::{FontPadding, OrbParts},
         font_mask::{FontMask, FontMaskProp},
     },
     interfaces::app::AppStateType,
@@ -15,6 +17,7 @@ pub struct FontEditorScreen<'a, T: Renderer> {
     app_state: AppStateType,
     _bounds: (f32, f32),
     psize: &'a PhysicalSize<u32>,
+    binded_char: Cell<HashMap<String, OrbParts>>,
 }
 
 impl<'a, T: Renderer> FontEditorScreen<'a, T> {
@@ -39,6 +42,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             app_state,
             _bounds: bounds,
             psize,
+            binded_char: Cell::new(HashMap::default()),
         }
     }
 
@@ -76,10 +80,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         let total_line_size = self.psize.width as f32 - horizontal_margin * 2.0;
         let total_in_line = total_line_size / font_dimension.get_complete_width().0;
 
-        for (ci, i) in chars
-            .chunks(total_in_line.floor() as usize)
-            .enumerate()
-        {
+        for (ci, i) in chars.chunks(total_in_line.floor() as usize).enumerate() {
             for (index, c) in i.iter().enumerate() {
                 if !c.is_empty() {
                     let position_x =
@@ -87,14 +88,14 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                     let position_y =
                         bounds[0].1 + (font_dimension.get_complete_width().1 * ci as f32);
 
-                    let font_mask = FontMask::new(self.app_state.clone());
+                    let mut font_mask =
+                        FontMask::new(self.app_state.clone(), self.binded_char.get_mut(), c);
                     font_mask.initialize(FontMaskProp {
                         canvas: &mut self.canvas,
                         cp: (position_x, position_y),
                         font_size,
                         padding: Some(padding.clone()),
-                        bind_char: c,
-                        draw_box: None
+                        draw_box: None,
                     });
                 }
             }
