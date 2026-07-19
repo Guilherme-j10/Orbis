@@ -13,7 +13,7 @@ use crate::{
 pub struct FontEditorScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
     app_state: AppStateType,
-    bounds: (f32, f32),
+    _bounds: (f32, f32),
     psize: &'a PhysicalSize<u32>,
 }
 
@@ -37,7 +37,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         Self {
             canvas,
             app_state,
-            bounds,
+            _bounds: bounds,
             psize,
         }
     }
@@ -87,9 +87,9 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                     let position_y =
                         bounds[0].1 + (font_dimension.get_complete_width().1 * ci as f32);
 
-                    FontMask::initialize(FontMaskProp {
+                    let font_mask = FontMask::new(self.app_state.clone());
+                    font_mask.initialize(FontMaskProp {
                         canvas: &mut self.canvas,
-                        state: self.app_state.clone(),
                         cp: (position_x, position_y),
                         font_size,
                         padding: Some(padding.clone()),

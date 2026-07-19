@@ -41,7 +41,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
 
     pub fn render(&mut self) -> () {
         let fonts_ids = self.app_state.font_ids.borrow();
-        let have_font_map = false;
+        let _have_font_map = false;
 
         let center_x = (self.bounds.0 + self.width) / 2.0;
         let center_y = (self.bounds.1 + self.height) / 2.0;
@@ -98,12 +98,8 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
             )
             .expect("Failed to fill text");
 
-        let mut had_click = self.app_state.had_click.borrow_mut();
-        if let Some(element_state) = *had_click {
-            if element_state == ElementState::Released {
-                self.app_state.current_screen.set(AppScreens::FontEditor);
-                *had_click = None;
-            }
+        if self.app_state.had_click() == true {
+            self.app_state.current_screen.set(AppScreens::FontEditor);
         }
     }
 }

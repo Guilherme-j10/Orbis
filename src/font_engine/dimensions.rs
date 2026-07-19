@@ -1,7 +1,7 @@
 use crate::{font_engine::font::FontPadding, utils::interpolation};
 
 pub struct FontDimension<'a> {
-    font_size: f32,
+    _font_size: f32,
     base_circle_r: f32,
     h_leg_w: f32,
     v_leg_h: f32,
@@ -23,7 +23,7 @@ impl<'a> FontDimension<'a> {
         let v_leg_h = interpolation(*fsize, font_size_input.to_vec(), [9.0, 15.0].to_vec());
 
         Self {
-            font_size: *fsize,
+            _font_size: *fsize,
             base_circle_r,
             h_leg_w,
             padding: padding,

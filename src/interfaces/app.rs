@@ -28,3 +28,17 @@ pub struct AppState {
 }
 
 pub type AppStateType = Rc<AppState>;
+
+impl AppState {
+    pub fn had_click(&self) -> bool {
+        let mut had_click = self.had_click.borrow_mut();
+        if let Some(element_state) = *had_click {
+            if element_state == ElementState::Pressed {
+                *had_click = None;
+                return true
+            }
+        }
+
+        return false
+    }
+}

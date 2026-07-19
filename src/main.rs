@@ -17,7 +17,7 @@ mod utils;
 mod wgpu;
 
 fn main() {
-    wgpu::start_wgpu(1440, 900, "Orbis", true);
+    wgpu::start_wgpu(1440, 900, "Orbis", false);
 }
 
 fn run<W: WindowSurface + 'static>(

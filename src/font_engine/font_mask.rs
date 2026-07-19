@@ -5,11 +5,13 @@ use crate::{
     interfaces::app::{AppStateType, ContextPoints},
 };
 
-pub struct FontMask;
+pub struct FontMask {
+    pub state: AppStateType
+}
 
 pub struct FontMaskProp<'a, T: Renderer> {
     pub canvas: &'a mut Canvas<T>,
-    pub state: AppStateType,
+    //pub state: AppStateType,
     pub cp: ContextPoints,
     pub font_size: f32,
     pub padding: Option<FontPadding>,
@@ -18,8 +20,14 @@ pub struct FontMaskProp<'a, T: Renderer> {
 }
 
 impl FontMask {
-    pub fn initialize<'a, T: Renderer>(props: FontMaskProp<'a, T>) -> () {
-        let mouse_position = props.state.mouse.borrow();
+    pub fn new(state: AppStateType) -> Self {
+        Self {
+            state
+        }
+    }
+
+    pub fn initialize<'a, T: Renderer>(&self, props: FontMaskProp<'a, T>) -> () {
+        let mouse_position = self.state.mouse.borrow();
 
         let path_list = OrbFont::init(
             props.canvas,
@@ -45,7 +53,7 @@ impl FontMask {
         ])
         .draw();
 
-        let fonts_ids = props.state.font_ids.borrow();
+        let fonts_ids = self.state.font_ids.borrow();
         let text_paint = Paint::color(Color::rgb(50, 50, 69))
             .with_font(&fonts_ids)
             .with_font_italic(false)
