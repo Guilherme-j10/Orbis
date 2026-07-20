@@ -1,4 +1,4 @@
-use std::{cell::{Cell, RefCell}, path::PathBuf, rc::Rc, sync::Arc};
+use std::{cell::{Cell, RefCell}, collections::HashMap, path::PathBuf, rc::Rc, sync::Arc};
 
 use femtovg::{Canvas, Color};
 use winit::{event::WindowEvent, window::Window};
@@ -29,6 +29,7 @@ fn run<W: WindowSurface + 'static>(
         mouse: RefCell::new(MousePosition::default()),
         current_screen: Cell::new(AppScreens::Initial),
         font_ids: RefCell::new(vec![]),
+        binded_char: RefCell::new(HashMap::default()),
         had_click: RefCell::new(None),
     });
 

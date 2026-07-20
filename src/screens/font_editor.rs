@@ -6,7 +6,7 @@ use winit::dpi::PhysicalSize;
 use crate::{
     font_engine::{
         dimensions::FontDimension,
-        font::{FontPadding, OrbParts},
+        font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
     },
     interfaces::app::AppStateType,
@@ -17,7 +17,6 @@ pub struct FontEditorScreen<'a, T: Renderer> {
     app_state: AppStateType,
     _bounds: (f32, f32),
     psize: &'a PhysicalSize<u32>,
-    binded_char: Cell<HashMap<String, OrbParts>>,
 }
 
 impl<'a, T: Renderer> FontEditorScreen<'a, T> {
@@ -42,7 +41,6 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             app_state,
             _bounds: bounds,
             psize,
-            binded_char: Cell::new(HashMap::default()),
         }
     }
 
@@ -89,7 +87,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                         bounds[0].1 + (font_dimension.get_complete_width().1 * ci as f32);
 
                     let mut font_mask =
-                        FontMask::new(self.app_state.clone(), self.binded_char.get_mut(), c);
+                        FontMask::new(self.app_state.clone(), c);
                     font_mask.initialize(FontMaskProp {
                         canvas: &mut self.canvas,
                         cp: (position_x, position_y),

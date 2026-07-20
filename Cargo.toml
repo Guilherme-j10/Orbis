@@ -8,4 +8,3 @@ femtovg = { version = "0.25.1", features = ["wgpu"] }
 winit = "0.30.13"
 wgpu = { version = "29.0.3", default-features = false, features = ["vulkan"] }
 pollster = "0.4.0"
-rayon = "1.12.0"

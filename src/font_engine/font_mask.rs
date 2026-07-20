@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
@@ -7,9 +5,8 @@ use crate::{
     interfaces::app::{AppStateType, ContextPoints, MousePosition},
 };
 
-pub struct FontMask<'f> {
+pub struct FontMask {
     pub state: AppStateType,
-    pub bind_state: &'f mut HashMap<String, OrbParts>,
     pub bind_char: &'static str,
 }
 
@@ -21,17 +18,9 @@ pub struct FontMaskProp<'a, T: Renderer> {
     pub draw_box: Option<bool>,
 }
 
-impl<'f> FontMask<'f> {
-    pub fn new(
-        state: AppStateType,
-        bind_state: &'f mut HashMap<String, OrbParts>,
-        bind_char: &'static str,
-    ) -> Self {
-        Self {
-            state,
-            bind_state,
-            bind_char,
-        }
+impl FontMask {
+    pub fn new(state: AppStateType, bind_char: &'static str) -> Self {
+        Self { state, bind_char }
     }
 
     pub fn initialize<'a, T: Renderer>(&mut self, props: FontMaskProp<'a, T>) -> () {
@@ -89,6 +78,8 @@ impl<'f> FontMask<'f> {
         for (_, comp) in path_list.into_iter().enumerate() {
             let mut path = comp.0;
             let color = path.1.with_color(Color::rgb(255, 255, 255));
+
+            let is_path_active = self.check_path_active(&comp.1);
             let is_in_path = props.canvas.contains_point(
                 &path.0,
                 mouse_position.x as f32,
@@ -96,7 +87,7 @@ impl<'f> FontMask<'f> {
                 femtovg::FillRule::NonZero,
             );
 
-            if is_in_path == true {
+            if (is_in_path || is_path_active) == true {
                 match path.2 {
                     FontFillKind::Stroke => {
                         props.canvas.stroke_path(&path.0, &color);
@@ -125,10 +116,30 @@ impl<'f> FontMask<'f> {
         }
     }
 
+    pub fn check_path_active(&self, part: &OrbParts) -> bool {
+        if let Some(storage) = self.state.binded_char.borrow().get(self.bind_char) {
+            return storage.contains(part);
+        }
+
+        false
+    }
+
     pub fn handle_click_in(&mut self, part: &OrbParts) -> () {
         if self.state.had_click() == true {
-            self.bind_state
-                .insert(self.bind_char.to_owned(), part.clone());
+            if let Some(storage) = self.state.binded_char.borrow_mut().get_mut(self.bind_char) {
+                let part = part.clone();
+
+                if storage.contains(&part) {
+                    storage.retain(|d| d != &part);
+                } else {
+                    storage.push(part.clone());
+                }
+            } else {
+                self.state
+                    .binded_char
+                    .borrow_mut()
+                    .insert(self.bind_char.to_owned(), vec![part.clone()]);
+            }
         }
     }
 }

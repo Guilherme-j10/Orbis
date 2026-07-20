@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
-use crate::{font_engine::font::OrbParts::{CircleBase, HalfRightCircle}, interfaces::app::OrbPartCode, utils::interpolation};
+use crate::{interfaces::app::OrbPartCode, utils::interpolation};
 
 pub struct FillRotate {
     x: f32,
@@ -51,7 +51,7 @@ impl Default for FontPadding {
     fn default() -> Self {
         Self {
             horizontal: 5.5,
-            vertical: 5.5
+            vertical: 5.5,
         }
     }
 }
@@ -182,20 +182,35 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         return path_list;
     }
 
-    pub fn draw_part_by_match(&mut self, part: &OrbParts) -> ((Path, Paint, FontFillKind), OrbParts) {
+    pub fn draw_part_by_match(
+        &mut self,
+        part: &OrbParts,
+    ) -> ((Path, Paint, FontFillKind), OrbParts) {
         match part {
             OrbParts::CircleBase => (self.draw_circle_base(), OrbParts::CircleBase),
-            OrbParts::CircleSmallCenter => (self.draw_circle_small_center(), OrbParts::CircleSmallCenter),
+            OrbParts::CircleSmallCenter => {
+                (self.draw_circle_small_center(), OrbParts::CircleSmallCenter)
+            }
             OrbParts::LeftLag => (self.draw_left_lag(), OrbParts::LeftLag),
             OrbParts::RightLag => (self.draw_right_lag(), OrbParts::RightLag),
             OrbParts::TopLag => (self.draw_top_lag(), OrbParts::TopLag),
             OrbParts::BottomLag => (self.draw_bottom_lag(), OrbParts::BottomLag),
             OrbParts::HalfLeftCircle => (self.draw_half_left_circle(), OrbParts::HalfLeftCircle),
             OrbParts::HalfRightCircle => (self.draw_half_right_circle(), OrbParts::HalfRightCircle),
-            OrbParts::TopAngleLeftLag => (self.draw_top_angle_left_lag(), OrbParts::TopAngleLeftLag),
-            OrbParts::TopAngleRightLag => (self.draw_top_angle_right_lag(), OrbParts::TopAngleRightLag),
-            OrbParts::BottomAngleLeftLag => (self.draw_bottom_angle_left_lag(), OrbParts::BottomAngleLeftLag),
-            OrbParts::BottomAngleRightLag => (self.draw_bottom_angle_right_lag(), OrbParts::BottomAngleRightLag),
+            OrbParts::TopAngleLeftLag => {
+                (self.draw_top_angle_left_lag(), OrbParts::TopAngleLeftLag)
+            }
+            OrbParts::TopAngleRightLag => {
+                (self.draw_top_angle_right_lag(), OrbParts::TopAngleRightLag)
+            }
+            OrbParts::BottomAngleLeftLag => (
+                self.draw_bottom_angle_left_lag(),
+                OrbParts::BottomAngleLeftLag,
+            ),
+            OrbParts::BottomAngleRightLag => (
+                self.draw_bottom_angle_right_lag(),
+                OrbParts::BottomAngleRightLag,
+            ),
         }
     }
 
@@ -505,7 +520,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum OrbParts {
     CircleBase = 1,
     CircleSmallCenter = 2,

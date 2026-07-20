@@ -1,7 +1,9 @@
-use std::{cell::{Cell, RefCell}, rc::Rc};
+use std::{cell::{Cell, RefCell}, collections::HashMap, rc::Rc};
 
 use femtovg::FontId;
 use winit::event::ElementState;
+
+use crate::font_engine::font::OrbParts;
 
 pub type ContextPoints = (f32, f32);
 pub type OrbPartCode = u8;
@@ -25,6 +27,7 @@ pub struct AppState {
     pub current_screen: Cell<AppScreens>,
     pub font_ids: RefCell<Vec<FontId>>,
     pub had_click: RefCell<Option<ElementState>>,
+    pub binded_char: RefCell<HashMap<String, Vec<OrbParts>>>,
 }
 
 pub type AppStateType = Rc<AppState>;
