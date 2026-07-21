@@ -1,9 +1,13 @@
-use std::{cell::{Cell, RefCell}, collections::HashMap, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    rc::Rc,
+};
 
-use femtovg::FontId;
+use femtovg::{FontId, Paint, Path};
 use winit::event::ElementState;
 
-use crate::font_engine::font::OrbParts;
+use crate::font_engine::font::{FontFillKind, OrbParts};
 
 pub type ContextPoints = (f32, f32);
 pub type OrbPartCode = u8;
@@ -38,10 +42,23 @@ impl AppState {
         if let Some(element_state) = *had_click {
             if element_state == ElementState::Pressed {
                 *had_click = None;
-                return true
+                return true;
             }
         }
 
-        return false
+        return false;
     }
+}
+
+pub enum OrbPathBounds {
+    Rect(f32, f32, f32, f32),      //x,y - w,h
+    Arc(f32, f32, f32, f32, bool), //cx,cy - r - stroke_w - is_half
+    Circle(f32, f32, f32),         //cx,cy - r
+}
+
+pub struct OrbPath {
+    pub path: Path,
+    pub paint: Paint,
+    pub font_fill_kind: FontFillKind,
+    pub bound: OrbPathBounds
 }

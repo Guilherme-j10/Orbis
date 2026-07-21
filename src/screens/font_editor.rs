@@ -1,5 +1,3 @@
-use std::{cell::Cell, collections::HashMap};
-
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
@@ -56,7 +54,8 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
 
         let font_dimension = FontDimension::new(&font_size, &padding);
 
-        let chars: Vec<&str> = "abcdefghijklmnopqrstuvwxyz0123456789"
+        // "abcdefghijklmnopqrstuvwxyz0123456789"
+        let chars: Vec<&str> = "a"
             .trim()
             .split("")
             .filter(|f| !f.is_empty())

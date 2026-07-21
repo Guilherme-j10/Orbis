@@ -2,7 +2,7 @@ use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
     font_engine::font::{FontFillKind, FontPadding, OrbFont, OrbParts},
-    interfaces::app::{AppStateType, ContextPoints, MousePosition},
+    interfaces::app::{AppStateType, ContextPoints, MousePosition, OrbPath, OrbPathBounds},
 };
 
 pub struct FontMask {
@@ -76,37 +76,38 @@ impl FontMask {
             .expect("Failed to draw bind char");
 
         for (_, comp) in path_list.into_iter().enumerate() {
-            let mut path = comp.0;
-            let color = path.1.with_color(Color::rgb(255, 255, 255));
+            let mut orb_path = comp.0;
+            let color = (orb_path.paint.clone()).with_color(Color::rgb(255, 255, 255));
 
             let is_path_active = self.check_path_active(&comp.1);
-            let is_in_path = props.canvas.contains_point(
-                &path.0,
-                mouse_position.x as f32,
-                mouse_position.y as f32,
-                femtovg::FillRule::NonZero,
-            );
+            let is_in_path = self.is_hover_path(&mouse_position, &orb_path);
+            // let is_in_path = props.canvas.contains_point(
+            //     &orb_path.path,
+            //     mouse_position.x as f32,
+            //     mouse_position.y as f32,
+            //     femtovg::FillRule::NonZero,
+            // );
 
             if (is_in_path || is_path_active) == true {
-                match path.2 {
+                match orb_path.font_fill_kind {
                     FontFillKind::Stroke => {
-                        props.canvas.stroke_path(&path.0, &color);
+                        props.canvas.stroke_path(&orb_path.path, &color);
                         self.handle_click_in(&comp.1);
                     }
                     FontFillKind::Path => {
-                        props.canvas.fill_path(&path.0, &color);
+                        props.canvas.fill_path(&orb_path.path, &color);
                         self.handle_click_in(&comp.1);
                     }
                     _ => {}
                 }
             } else {
-                match path.2 {
+                match orb_path.font_fill_kind {
                     FontFillKind::Rotate(font) => {
                         font.render(
                             mouse_position.x as f32,
                             mouse_position.y as f32,
                             props.canvas,
-                            &mut path.0,
+                            &mut orb_path.path,
                             &color,
                         );
                     }
@@ -114,6 +115,73 @@ impl FontMask {
                 }
             }
         }
+    }
+
+    pub fn is_hover_path(&self, mpos: &MousePosition, opath: &OrbPath) -> bool {
+        let mx = mpos.x as f32;
+        let my = mpos.y as f32;
+
+        return match opath.bound {
+            OrbPathBounds::Arc(cx, cy, r, s, is_h) => {
+                if !is_h {
+                    let b_out_l = cx - r;
+                    let b_in_l = b_out_l + s;
+
+                    if (mx >= b_out_l && mx <= b_in_l) && (my >= cy - r && my <= cy + r) {
+                        return true;
+                    }
+
+                    let b_out_r = cx + r;
+                    let b_in_r = b_out_r - s;
+
+                    if (mx <= b_out_r && mx >= b_in_r) && (my >= cy - r && my <= cy + r) {
+                        return true;
+                    }
+
+                    let b_out_t = cy - r;
+                    let b_in_t = b_out_t + s;
+
+                    if (my >= b_out_t && my <= b_in_t) && (mx >= cx - r && mx <= cx + r) {
+                        return true;
+                    }
+
+                    let b_out_b = cy + r;
+                    let b_in_b = b_out_b - s;
+
+                    if (my <= b_out_b && my >= b_in_b) && (mx >= cx - r && mx <= cx + r) {
+                        return true;
+                    }
+                }
+
+                let b_out_l = cx - r;
+                let b_in_l = b_out_l + s;
+
+                if (mx >= b_out_l && mx <= b_in_l) && (my >= cy - r && my <= cy + r) {
+                    return true;
+                }
+
+                let b_out_r = cx + r;
+                let b_in_r = b_out_r - s;
+
+                if (mx <= b_out_r && mx >= b_in_r) && (my >= cy - r && my <= cy + r) {
+                    return true;
+                }
+
+                false
+            }
+            OrbPathBounds::Circle(cx, cy, r) => {
+                if (mx >= cx - r && my >= cy - r) && (mx <= cx + r && my <= cy + r) {
+                    return true;
+                }
+                false
+            }
+            OrbPathBounds::Rect(x, y, w, h) => {
+                if (mx >= x && my >= y) && (mx <= x + w && my <= y + h) {
+                    return true;
+                }
+                false
+            }
+        };
     }
 
     pub fn check_path_active(&self, part: &OrbParts) -> bool {
@@ -129,11 +197,12 @@ impl FontMask {
             if let Some(storage) = self.state.binded_char.borrow_mut().get_mut(self.bind_char) {
                 let part = part.clone();
 
-                if storage.contains(&part) {
-                    storage.retain(|d| d != &part);
-                } else {
-                    storage.push(part.clone());
+                if let Some(pos) = storage.iter().position(|d| d == &part) {
+                    storage.remove(pos);
+                    return;
                 }
+
+                storage.push(part.clone());
             } else {
                 self.state
                     .binded_char

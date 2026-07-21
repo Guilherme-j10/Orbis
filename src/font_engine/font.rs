@@ -2,7 +2,10 @@ use std::f32::consts::PI;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
-use crate::{interfaces::app::OrbPartCode, utils::interpolation};
+use crate::{
+    interfaces::app::{OrbPartCode, OrbPath, OrbPathBounds},
+    utils::interpolation,
+};
 
 pub struct FillRotate {
     x: f32,
@@ -157,7 +160,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         }
     }
 
-    pub fn draw(&mut self) -> Vec<((Path, Paint, FontFillKind), OrbParts)> {
+    pub fn draw(&mut self) -> Vec<(OrbPath, OrbParts)> {
         if self.draw_box == true {
             let mut path = Path::new();
             path.rect(
@@ -172,7 +175,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             self.canvas.stroke_path(&path, &box_color);
         }
 
-        let mut path_list: Vec<((Path, Paint, FontFillKind), OrbParts)> = vec![];
+        let mut path_list: Vec<(OrbPath, OrbParts)> = vec![];
         let parts_to_draw = self.parts_to_draw.clone();
         for part in parts_to_draw.iter() {
             let path = self.draw_part_by_match(part);
@@ -182,10 +185,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         return path_list;
     }
 
-    pub fn draw_part_by_match(
-        &mut self,
-        part: &OrbParts,
-    ) -> ((Path, Paint, FontFillKind), OrbParts) {
+    pub fn draw_part_by_match(&mut self, part: &OrbParts) -> (OrbPath, OrbParts) {
         match part {
             OrbParts::CircleBase => (self.draw_circle_base(), OrbParts::CircleBase),
             OrbParts::CircleSmallCenter => {
@@ -214,7 +214,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         }
     }
 
-    pub fn draw_circle_base(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_circle_base(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let mut base_circle = Path::new();
         base_circle.arc(
@@ -226,26 +226,37 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             femtovg::Solidity::Solid,
         );
         self.canvas.stroke_path(&base_circle, &self.default_paint);
-        return (
-            base_circle,
-            self.default_paint.clone(),
-            FontFillKind::Stroke,
-        );
+
+        return OrbPath {
+            path: base_circle,
+            paint: self.default_paint.clone(),
+            font_fill_kind: FontFillKind::Stroke,
+            bound: OrbPathBounds::Arc(
+                cx,
+                cy,
+                self.base_circle_r,
+                self.default_paint.line_width(),
+                false,
+            ),
+        };
     }
 
-    pub fn draw_circle_small_center(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_circle_small_center(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
+        let radius = self.base_circle_r / 3.0;
         let mut center_circle = Path::new();
-        center_circle.circle(cx, cy, self.base_circle_r / 3.0);
+        center_circle.circle(cx, cy, radius);
         self.canvas.fill_path(&center_circle, &self.default_paint);
-        return (
-            center_circle,
-            self.default_paint.clone(),
-            FontFillKind::Path,
-        );
+
+        return OrbPath {
+            path: center_circle,
+            paint: self.default_paint.clone(),
+            font_fill_kind: FontFillKind::Path,
+            bound: OrbPathBounds::Circle(cx, cy, radius),
+        };
     }
 
-    pub fn draw_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_left_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.h_leg_h;
         let line_width = self.h_leg_w;
@@ -259,10 +270,15 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.rect(initx, inity, line_width, line_height);
         self.canvas.fill_path(&path, &self.lag_paint);
 
-        return (path, self.lag_paint.clone(), FontFillKind::Path);
+        return OrbPath {
+            path,
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Path,
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_right_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.h_leg_h;
         let line_width = self.h_leg_w;
@@ -276,10 +292,15 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.rect(initx, inity, line_width, line_height);
         self.canvas.fill_path(&path, &self.lag_paint);
 
-        return (path, self.lag_paint.clone(), FontFillKind::Path);
+        return OrbPath {
+            path,
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Path,
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_top_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_top_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
@@ -293,10 +314,15 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.rect(initx, inity, line_width, line_height);
         self.canvas.fill_path(&path, &self.lag_paint);
 
-        return (path, self.lag_paint.clone(), FontFillKind::Path);
+        return OrbPath {
+            path,
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Path,
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_bottom_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_bottom_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
@@ -310,10 +336,15 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
         path.rect(initx, inity, line_width, line_height);
         self.canvas.fill_path(&path, &self.lag_paint);
 
-        return (path, self.lag_paint.clone(), FontFillKind::Path);
+        return OrbPath {
+            path,
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Path,
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_half_left_circle(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_half_left_circle(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (
             cx - (((self.base_circle_r / 2.0) + self.h_leg_w) - (self.circle_width * 2.0)),
@@ -329,10 +360,22 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             femtovg::Solidity::Solid,
         );
         self.canvas.stroke_path(&path, &self.lag_paint);
-        return (path, self.lag_paint.clone(), FontFillKind::Stroke);
+
+        return OrbPath {
+            path,
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Stroke,
+            bound: OrbPathBounds::Arc(
+                initx,
+                inity,
+                self.base_circle_r,
+                self.lag_paint.line_width(),
+                true,
+            ),
+        };
     }
 
-    pub fn draw_half_right_circle(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_half_right_circle(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let (initx, inity) = (
             cx + (((self.base_circle_r / 2.0) + self.h_leg_w) - (self.circle_width * 2.0)),
@@ -348,10 +391,22 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             femtovg::Solidity::Solid,
         );
         self.canvas.stroke_path(&path, &self.lag_paint);
-        return (path, self.lag_paint.clone(), FontFillKind::Stroke);
+
+        return OrbPath {
+            path,
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Stroke,
+            bound: OrbPathBounds::Arc(
+                initx,
+                inity,
+                self.base_circle_r,
+                self.lag_paint.line_width(),
+                true,
+            ),
+        };
     }
 
-    pub fn draw_top_angle_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_top_angle_left_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
@@ -380,20 +435,21 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
         self.canvas.restore();
 
-        return (
+        return OrbPath {
             path,
-            self.lag_paint.clone(),
-            FontFillKind::Rotate(FillRotate {
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Rotate(FillRotate {
                 x: initx,
                 y: inity,
                 w: line_width,
                 h: line_height,
                 a: angle,
             }),
-        );
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_top_angle_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_top_angle_right_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
@@ -422,20 +478,21 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
         self.canvas.restore();
 
-        return (
+        return OrbPath {
             path,
-            self.lag_paint.clone(),
-            FontFillKind::Rotate(FillRotate {
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Rotate(FillRotate {
                 x: initx,
                 y: inity,
                 w: line_width,
                 h: line_height,
                 a: angle,
             }),
-        );
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_bottom_angle_left_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_bottom_angle_left_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
@@ -464,20 +521,21 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
         self.canvas.restore();
 
-        return (
+        return OrbPath {
             path,
-            self.lag_paint.clone(),
-            FontFillKind::Rotate(FillRotate {
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Rotate(FillRotate {
                 x: initx,
                 y: inity,
                 w: line_width,
                 h: line_height,
                 a: angle,
             }),
-        );
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 
-    pub fn draw_bottom_angle_right_lag(&mut self) -> (Path, Paint, FontFillKind) {
+    pub fn draw_bottom_angle_right_lag(&mut self) -> OrbPath {
         let (cx, cy) = self.font_center;
         let line_height = self.v_leg_h;
         let line_width = self.v_leg_w;
@@ -506,17 +564,18 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
 
         self.canvas.restore();
 
-        return (
+        return OrbPath {
             path,
-            self.lag_paint.clone(),
-            FontFillKind::Rotate(FillRotate {
+            paint: self.lag_paint.clone(),
+            font_fill_kind: FontFillKind::Rotate(FillRotate {
                 x: initx,
                 y: inity,
                 w: line_width,
                 h: line_height,
                 a: angle,
             }),
-        );
+            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+        };
     }
 }
 
