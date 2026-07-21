@@ -1,5 +1,3 @@
-use std::{cell::Cell, collections::HashMap};
-
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 

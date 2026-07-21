@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
-use winit::{dpi::PhysicalSize, event::ElementState};
+use winit::dpi::PhysicalSize;
 
 use crate::interfaces::app::{AppScreens, AppStateType};
 
