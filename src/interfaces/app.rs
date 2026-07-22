@@ -50,6 +50,7 @@ impl AppState {
     }
 }
 
+#[derive(Debug)]
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),      //x,y - w,h
     Arc(f32, f32, f32, f32, bool), //cx,cy - r - stroke_w - is_half

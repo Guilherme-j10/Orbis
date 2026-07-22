@@ -54,8 +54,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
 
         let font_dimension = FontDimension::new(&font_size, &padding);
 
-        // "abcdefghijklmnopqrstuvwxyz0123456789"
-        let chars: Vec<&str> = "a"
+        let chars: Vec<&str> = "abcdefghijklmnopqrstuvwxyz0123456789"
             .trim()
             .split("")
             .filter(|f| !f.is_empty())

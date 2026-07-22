@@ -80,25 +80,21 @@ impl FontMask {
             let color = (orb_path.paint.clone()).with_color(Color::rgb(255, 255, 255));
 
             let is_path_active = self.check_path_active(&comp.1);
-            let is_in_path = self.is_hover_path(&mouse_position, &orb_path);
-            // let is_in_path = props.canvas.contains_point(
-            //     &orb_path.path,
-            //     mouse_position.x as f32,
-            //     mouse_position.y as f32,
-            //     femtovg::FillRule::NonZero,
-            // );
+            let is_hovered = self.is_hover_path(&mouse_position, &orb_path);
 
-            if (is_in_path || is_path_active) == true {
+            if (is_hovered || is_path_active) == true {
                 match orb_path.font_fill_kind {
                     FontFillKind::Stroke => {
                         props.canvas.stroke_path(&orb_path.path, &color);
-                        self.handle_click_in(&comp.1);
                     }
                     FontFillKind::Path => {
                         props.canvas.fill_path(&orb_path.path, &color);
-                        self.handle_click_in(&comp.1);
                     }
                     _ => {}
+                }
+
+                if is_hovered {
+                    self.handle_click_in(&comp.1);
                 }
             } else {
                 match orb_path.font_fill_kind {
@@ -194,6 +190,7 @@ impl FontMask {
 
     pub fn handle_click_in(&mut self, part: &OrbParts) -> () {
         if self.state.had_click() == true {
+            println!("{:?}", part);
             if let Some(storage) = self.state.binded_char.borrow_mut().get_mut(self.bind_char) {
                 let part = part.clone();
 
