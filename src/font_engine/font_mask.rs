@@ -190,7 +190,6 @@ impl FontMask {
 
     pub fn handle_click_in(&mut self, part: &OrbParts) -> () {
         if self.state.had_click() == true {
-            println!("{:?}", part);
             if let Some(storage) = self.state.binded_char.borrow_mut().get_mut(self.bind_char) {
                 let part = part.clone();
 
