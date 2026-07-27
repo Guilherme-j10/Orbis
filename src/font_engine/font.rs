@@ -12,27 +12,26 @@ pub struct FillRotate {
     y: f32,
     w: f32,
     h: f32,
-    a: f32,
+    a: f32, // angle in degrees
 }
 
 impl FillRotate {
-    pub fn render<T: Renderer>(
-        &self,
-        mx: f32,
-        my: f32,
-        canvas: &mut Canvas<T>,
-        path: &mut Path,
-        color: &Paint,
-    ) -> () {
+    pub fn center(&self) -> (f32, f32) {
+        (self.x + self.w / 2.0, self.y + self.h / 2.0)
+    }
+
+    pub fn angle_rad(&self) -> f32 {
+        self.a * PI / 180.0
+    }
+
+    pub fn render<T: Renderer>(&self, canvas: &mut Canvas<T>, path: &Path, color: &Paint) -> () {
+        let (center_x, center_y) = self.center();
+
         canvas.save();
 
-        canvas.translate(self.x + self.w / 2.0, self.y + self.h / 2.0);
-        canvas.rotate(self.a * PI / 180.0);
-
-        if canvas.contains_point(path, mx, my, femtovg::FillRule::NonZero) {
-            path.rect(-(self.w / 2.0), -(self.h / 2.0), self.w, self.h);
-            canvas.fill_path(&path, color);
-        }
+        canvas.translate(center_x, center_y);
+        canvas.rotate(self.angle_rad());
+        canvas.fill_path(&path, color);
 
         canvas.restore();
     }
@@ -237,6 +236,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 self.base_circle_r,
                 self.default_paint.line_width(),
                 false,
+                0
             ),
         };
     }
@@ -371,6 +371,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 self.base_circle_r,
                 self.lag_paint.line_width(),
                 true,
+                1
             ),
         };
     }
@@ -402,6 +403,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 self.base_circle_r,
                 self.lag_paint.line_width(),
                 true,
+                2
             ),
         };
     }
@@ -445,7 +447,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 h: line_height,
                 a: angle,
             }),
-            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+            bound: OrbPathBounds::RotatedRect(initx, inity, line_width, line_height, angle),
         };
     }
 
@@ -488,7 +490,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 h: line_height,
                 a: angle,
             }),
-            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+            bound: OrbPathBounds::RotatedRect(initx, inity, line_width, line_height, angle),
         };
     }
 
@@ -531,7 +533,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 h: line_height,
                 a: angle,
             }),
-            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+            bound: OrbPathBounds::RotatedRect(initx, inity, line_width, line_height, angle),
         };
     }
 
@@ -574,7 +576,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 h: line_height,
                 a: angle,
             }),
-            bound: OrbPathBounds::Rect(initx, inity, line_width, line_height),
+            bound: OrbPathBounds::RotatedRect(initx, inity, line_width, line_height, angle),
         };
     }
 }

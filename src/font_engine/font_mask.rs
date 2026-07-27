@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
@@ -75,50 +77,38 @@ impl FontMask {
             )
             .expect("Failed to draw bind char");
 
-        for (_, comp) in path_list.into_iter().enumerate() {
-            let mut orb_path = comp.0;
+        for (_, (orb_path, orb_parts)) in path_list.into_iter().enumerate() {
             let color = (orb_path.paint.clone()).with_color(Color::rgb(255, 255, 255));
 
-            let is_path_active = self.check_path_active(&comp.1);
-            let is_hovered = self.is_hover_path(&mouse_position, &orb_path);
+            let is_path_active = self.check_path_active(&orb_parts);
+            let is_hovered = Self::is_hover_path(&mouse_position, &orb_path);
 
             if (is_hovered || is_path_active) == true {
-                match orb_path.font_fill_kind {
+                match &orb_path.font_fill_kind {
                     FontFillKind::Stroke => {
                         props.canvas.stroke_path(&orb_path.path, &color);
                     }
                     FontFillKind::Path => {
                         props.canvas.fill_path(&orb_path.path, &color);
                     }
-                    _ => {}
+                    FontFillKind::Rotate(rotate) => {
+                        rotate.render(props.canvas, &orb_path.path, &color);
+                    }
                 }
 
                 if is_hovered {
-                    self.handle_click_in(&comp.1);
-                }
-            } else {
-                match orb_path.font_fill_kind {
-                    FontFillKind::Rotate(font) => {
-                        font.render(
-                            mouse_position.x as f32,
-                            mouse_position.y as f32,
-                            props.canvas,
-                            &mut orb_path.path,
-                            &color,
-                        );
-                    }
-                    _ => {}
+                    self.handle_click_in(&orb_parts);
                 }
             }
         }
     }
 
-    pub fn is_hover_path(&self, mpos: &MousePosition, opath: &OrbPath) -> bool {
+    pub fn is_hover_path(mpos: &MousePosition, opath: &OrbPath) -> bool {
         let mx = mpos.x as f32;
         let my = mpos.y as f32;
 
         return match opath.bound {
-            OrbPathBounds::Arc(cx, cy, r, s, is_h) => {
+            OrbPathBounds::Arc(cx, cy, r, s, is_h, side) => {
                 if !is_h {
                     let b_out_l = cx - r;
                     let b_in_l = b_out_l + s;
@@ -149,18 +139,22 @@ impl FontMask {
                     }
                 }
 
-                let b_out_l = cx - r;
-                let b_in_l = b_out_l + s;
+                if side == 1 {
+                    let b_out_l = cx - r - s / 2.0;
+                    let b_in_l = b_out_l + s;
 
-                if (mx >= b_out_l && mx <= b_in_l) && (my >= cy - r && my <= cy + r) {
-                    return true;
+                    if (mx >= b_out_l && mx <= b_in_l) && (my >= cy - r && my <= cy + r) {
+                        return true;
+                    }
                 }
 
-                let b_out_r = cx + r;
-                let b_in_r = b_out_r - s;
+                if side == 2 {
+                    let b_out_r = cx + r + s / 2.0;
+                    let b_in_r = b_out_r - s;
 
-                if (mx <= b_out_r && mx >= b_in_r) && (my >= cy - r && my <= cy + r) {
-                    return true;
+                    if (mx <= b_out_r && mx >= b_in_r) && (my >= cy - r && my <= cy + r) {
+                        return true;
+                    }
                 }
 
                 false
@@ -176,6 +170,21 @@ impl FontMask {
                     return true;
                 }
                 false
+            }
+            OrbPathBounds::RotatedRect(x, y, w, h, a) => {
+                let center_x = x + w / 2.0;
+                let center_y = y + h / 2.0;
+
+                let dx = mx - center_x;
+                let dy = my - center_y;
+
+                // undo the canvas rotation so the mouse can be tested against the
+                // axis aligned rect
+                let (sin, cos) = (-a * PI / 180.0).sin_cos();
+                let local_x = dx * cos - dy * sin;
+                let local_y = dx * sin + dy * cos;
+
+                local_x.abs() <= w / 2.0 && local_y.abs() <= h / 2.0
             }
         };
     }
