@@ -64,3 +64,8 @@ pub struct OrbPath {
     pub font_fill_kind: FontFillKind,
     pub bound: OrbPathBounds
 }
+
+pub enum GlihpPatternCheck {
+    Available,
+    Unavailable
+}

@@ -4,7 +4,9 @@ use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
     font_engine::font::{FontFillKind, FontPadding, OrbFont, OrbParts},
-    interfaces::app::{AppStateType, ContextPoints, MousePosition, OrbPath, OrbPathBounds},
+    interfaces::app::{
+        AppStateType, ContextPoints, GlihpPatternCheck, MousePosition, OrbPath, OrbPathBounds,
+    },
 };
 
 pub struct FontMask {
@@ -62,7 +64,11 @@ impl FontMask {
             let ids = self.state.font_ids.borrow();
             ids.clone()
         };
-        let text_paint = Paint::color(Color::rgb(50, 50, 69))
+        let color = match self.check_pattern() {
+            GlihpPatternCheck::Available => Color::rgb(50, 50, 69),
+            GlihpPatternCheck::Unavailable => Color::rgb(209, 63, 63),
+        };
+        let text_paint = Paint::color(color)
             .with_font(&fonts_ids)
             .with_font_italic(false)
             .with_font_weight(500.0);
@@ -77,7 +83,7 @@ impl FontMask {
             )
             .expect("Failed to draw bind char");
 
-        for (_, (orb_path, orb_parts)) in path_list.into_iter().enumerate() {
+        for (_, (orb_path, orb_parts)) in path_list.iter().enumerate() {
             let color = (orb_path.paint.clone()).with_color(Color::rgb(255, 255, 255));
 
             let is_path_active = self.check_path_active(&orb_parts);
@@ -101,6 +107,40 @@ impl FontMask {
                 }
             }
         }
+    }
+
+    pub fn check_pattern(&self) -> GlihpPatternCheck {
+        let state = self.state.binded_char.borrow();
+        let mut current_pattern = state
+            .get(self.bind_char)
+            .unwrap_or(&vec![])
+            .iter()
+            .map(|f| f.clone() as u8)
+            .collect::<Vec<u8>>();
+
+        if current_pattern.len() == 0 {
+            return GlihpPatternCheck::Available;
+        }
+
+        for (_, (bind, part_list)) in state.iter().enumerate() {
+            if bind == self.bind_char {
+                continue;
+            }
+
+            let mut pattern = part_list
+                .iter()
+                .map(|f| f.clone() as u8)
+                .collect::<Vec<u8>>();
+
+            pattern.sort();
+            current_pattern.sort();
+
+            if pattern == current_pattern {
+                return GlihpPatternCheck::Unavailable;
+            }
+        }
+
+        GlihpPatternCheck::Available
     }
 
     pub fn is_hover_path(mpos: &MousePosition, opath: &OrbPath) -> bool {

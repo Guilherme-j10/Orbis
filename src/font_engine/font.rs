@@ -3,9 +3,25 @@ use std::f32::consts::PI;
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
 use crate::{
-    interfaces::app::{OrbPartCode, OrbPath, OrbPathBounds},
+    interfaces::app::{OrbPath, OrbPathBounds},
     utils::interpolation,
 };
+
+#[derive(Clone, PartialEq, Debug)]
+pub enum OrbParts {
+    CircleBase = 1,
+    CircleSmallCenter = 2,
+    LeftLag = 3,
+    RightLag = 4,
+    TopLag = 5,
+    BottomLag = 6,
+    HalfLeftCircle = 7,
+    HalfRightCircle = 8,
+    TopAngleLeftLag = 9,
+    TopAngleRightLag = 10,
+    BottomAngleLeftLag = 11,
+    BottomAngleRightLag = 12,
+}
 
 pub struct FillRotate {
     x: f32,
@@ -236,7 +252,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 self.base_circle_r,
                 self.default_paint.line_width(),
                 false,
-                0
+                0,
             ),
         };
     }
@@ -371,7 +387,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 self.base_circle_r,
                 self.lag_paint.line_width(),
                 true,
-                1
+                1,
             ),
         };
     }
@@ -403,7 +419,7 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
                 self.base_circle_r,
                 self.lag_paint.line_width(),
                 true,
-                2
+                2,
             ),
         };
     }
@@ -578,49 +594,5 @@ impl<'a, T: Renderer> OrbFont<'a, T> {
             }),
             bound: OrbPathBounds::RotatedRect(initx, inity, line_width, line_height, angle),
         };
-    }
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub enum OrbParts {
-    CircleBase = 1,
-    CircleSmallCenter = 2,
-    LeftLag = 3,
-    RightLag = 4,
-    TopLag = 5,
-    BottomLag = 6,
-    HalfLeftCircle = 7,
-    HalfRightCircle = 8,
-    TopAngleLeftLag = 9,
-    TopAngleRightLag = 10,
-    BottomAngleLeftLag = 11,
-    BottomAngleRightLag = 12,
-}
-
-impl From<OrbParts> for u8 {
-    fn from(value: OrbParts) -> Self {
-        value as u8
-    }
-}
-
-impl TryFrom<OrbPartCode> for OrbParts {
-    type Error = &'static str;
-
-    fn try_from(value: OrbPartCode) -> Result<Self, Self::Error> {
-        match value {
-            1 => Ok(OrbParts::CircleBase),
-            2 => Ok(OrbParts::CircleSmallCenter),
-            3 => Ok(OrbParts::LeftLag),
-            4 => Ok(OrbParts::RightLag),
-            5 => Ok(OrbParts::TopLag),
-            6 => Ok(OrbParts::BottomLag),
-            7 => Ok(OrbParts::HalfLeftCircle),
-            8 => Ok(OrbParts::HalfRightCircle),
-            9 => Ok(OrbParts::TopAngleLeftLag),
-            10 => Ok(OrbParts::TopAngleRightLag),
-            11 => Ok(OrbParts::BottomAngleLeftLag),
-            12 => Ok(OrbParts::BottomAngleRightLag),
-            _ => Err("Invalid part code"),
-        }
     }
 }
