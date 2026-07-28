@@ -33,6 +33,18 @@ pub struct AppState {
     pub binded_char: RefCell<HashMap<String, Vec<OrbParts>>>,
 }
 
+#[derive(Debug)]
+pub struct HardwareState {
+    pub mouse: RefCell<MousePosition>,
+    pub hit_click: RefCell<Option<ElementState>>,
+}
+
+#[derive(Debug)]
+pub struct ApplicationState {
+    pub hardware: HardwareState,
+    // so on
+}
+
 pub type AppStateType = Rc<AppState>;
 
 impl AppState {

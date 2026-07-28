@@ -107,6 +107,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             }
             
             println!("Ready to save file state");
+            //here we can draw a button to save the file
         }
     }
 }
