@@ -7,7 +7,7 @@ use crate::{
         font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
     },
-    interfaces::app::AppStateType,
+    interfaces::app::{AppStateType, GlihpPatternCheck},
 };
 
 pub struct FontEditorScreen<'a, T: Renderer> {
@@ -84,8 +84,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                     let position_y =
                         bounds[0].1 + (font_dimension.get_complete_width().1 * ci as f32);
 
-                    let mut font_mask =
-                        FontMask::new(self.app_state.clone(), c);
+                    let mut font_mask = FontMask::new(self.app_state.clone(), c);
                     font_mask.initialize(FontMaskProp {
                         canvas: &mut self.canvas,
                         cp: (position_x, position_y),
@@ -95,6 +94,19 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                     });
                 }
             }
+        }
+
+        if self.app_state.binded_char.borrow().len() == chars.len() {
+            for bind in chars.into_iter() {
+                match FontMask::check_pattern(bind, &self.app_state) {
+                    GlihpPatternCheck::Unavailable => {
+                        return;
+                    }
+                    _ => {}
+                }
+            }
+            
+            println!("Ready to save file state");
         }
     }
 }

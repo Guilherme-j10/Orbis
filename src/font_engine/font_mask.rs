@@ -64,7 +64,7 @@ impl FontMask {
             let ids = self.state.font_ids.borrow();
             ids.clone()
         };
-        let color = match self.check_pattern() {
+        let color = match Self::check_pattern(self.bind_char, &self.state) {
             GlihpPatternCheck::Available => Color::rgb(50, 50, 69),
             GlihpPatternCheck::Unavailable => Color::rgb(209, 63, 63),
         };
@@ -109,10 +109,10 @@ impl FontMask {
         }
     }
 
-    pub fn check_pattern(&self) -> GlihpPatternCheck {
-        let state = self.state.binded_char.borrow();
+    pub fn check_pattern(current_bind: &str, state: &AppStateType) -> GlihpPatternCheck {
+        let state = state.binded_char.borrow();
         let mut current_pattern = state
-            .get(self.bind_char)
+            .get(current_bind)
             .unwrap_or(&vec![])
             .iter()
             .map(|f| f.clone() as u8)
@@ -123,7 +123,7 @@ impl FontMask {
         }
 
         for (_, (bind, part_list)) in state.iter().enumerate() {
-            if bind == self.bind_char {
+            if bind == current_bind {
                 continue;
             }
 
