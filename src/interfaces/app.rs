@@ -10,7 +10,6 @@ use winit::event::ElementState;
 use crate::font_engine::font::{FontFillKind, OrbParts};
 
 pub type ContextPoints = (f32, f32);
-pub type OrbPartCode = u8;
 
 #[derive(Debug, Default)]
 pub struct MousePosition {
