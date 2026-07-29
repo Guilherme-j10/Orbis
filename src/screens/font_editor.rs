@@ -6,13 +6,13 @@ use crate::{
         dimensions::FontDimension,
         font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
-    },
-    interfaces::app::{AppStateType, GlihpPatternCheck},
+    }, interfaces::app::{ApplicationScreens, ApplicationStateType, FontMappingState, GlihpPatternCheck},
 };
 
 pub struct FontEditorScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
-    app_state: AppStateType,
+    app_state: ApplicationStateType,
+    state_screen: &'a FontMappingState,
     _bounds: (f32, f32),
     psize: &'a PhysicalSize<u32>,
 }
@@ -20,7 +20,8 @@ pub struct FontEditorScreen<'a, T: Renderer> {
 impl<'a, T: Renderer> FontEditorScreen<'a, T> {
     pub fn initialize(
         canvas: &'a mut Canvas<T>,
-        app_state: AppStateType,
+        app_state: ApplicationStateType,
+        state_screen: &'a FontMappingState,
         bounds: (f32, f32),
         psize: &'a PhysicalSize<u32>,
     ) -> Self {
@@ -37,12 +38,13 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         Self {
             canvas,
             app_state,
+            state_screen,
             _bounds: bounds,
             psize,
         }
     }
 
-    pub fn render(&mut self) -> () {
+    pub fn render(&mut self) -> Option<ApplicationScreens> {
         let draw_bounds_points = false;
         let horizontal_margin = 270.0;
         let margin_top = 100.0;
@@ -84,7 +86,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                     let position_y =
                         bounds[0].1 + (font_dimension.get_complete_width().1 * ci as f32);
 
-                    let mut font_mask = FontMask::new(self.app_state.clone(), c);
+                    let mut font_mask = FontMask::new(self.app_state.clone(), self.state_screen, c);
                     font_mask.initialize(FontMaskProp {
                         canvas: &mut self.canvas,
                         cp: (position_x, position_y),
@@ -96,18 +98,20 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             }
         }
 
-        if self.app_state.binded_char.borrow().len() == chars.len() {
+        if self.state_screen.binded_char.borrow().len() == chars.len() {
             for bind in chars.into_iter() {
-                match FontMask::check_pattern(bind, &self.app_state) {
+                match FontMask::check_pattern(bind, &self.state_screen) {
                     GlihpPatternCheck::Unavailable => {
-                        return;
+                        return None;
                     }
                     _ => {}
                 }
             }
-            
+
             println!("Ready to save file state");
             //here we can draw a button to save the file
         }
+
+        None
     }
 }

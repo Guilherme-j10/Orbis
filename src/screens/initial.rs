@@ -3,11 +3,11 @@ use std::f32::consts::PI;
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
-use crate::interfaces::app::{AppScreens, AppStateType};
+use crate::interfaces::app::{ApplicationScreens, ApplicationStateType, FontMappingState};
 
 pub struct InitialScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
-    app_state: AppStateType,
+    app_state: ApplicationStateType,
     bounds: (f32, f32),
     width: f32,
     height: f32,
@@ -16,7 +16,7 @@ pub struct InitialScreen<'a, T: Renderer> {
 impl<'a, T: Renderer> InitialScreen<'a, T> {
     pub fn initialize(
         canvas: &'a mut Canvas<T>,
-        app_state: AppStateType,
+        app_state: ApplicationStateType,
         bounds: (f32, f32),
         psize: &PhysicalSize<u32>,
     ) -> Self {
@@ -39,8 +39,8 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
         }
     }
 
-    pub fn render(&mut self) -> () {
-        let fonts_ids = self.app_state.font_ids.borrow();
+    pub fn render(&mut self) -> Option<ApplicationScreens> {
+        let fonts_ids = self.app_state.app_data.font_ids.borrow();
         let _have_font_map = false;
 
         let center_x = (self.bounds.0 + self.width) / 2.0;
@@ -99,7 +99,9 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
             .expect("Failed to fill text");
 
         if self.app_state.had_click() == true {
-            self.app_state.current_screen.set(AppScreens::FontEditor);
+            return Some(ApplicationScreens::FontMapping(FontMappingState::default()))
         }
+
+        None
     }
 }

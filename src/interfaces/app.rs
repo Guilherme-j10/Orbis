@@ -1,8 +1,4 @@
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use femtovg::{FontId, Paint, Path};
 use winit::event::ElementState;
@@ -17,20 +13,15 @@ pub struct MousePosition {
     pub y: f64,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum AppScreens {
-    Initial,
-    FontEditor,
-    OpenedFile,
+#[derive(Debug, Default)]
+pub struct FontMappingState {
+    pub binded_char: RefCell<HashMap<String, Vec<OrbParts>>>,
 }
 
 #[derive(Debug)]
-pub struct AppState {
-    pub mouse: RefCell<MousePosition>,
-    pub current_screen: Cell<AppScreens>,
-    pub font_ids: RefCell<Vec<FontId>>,
-    pub had_click: RefCell<Option<ElementState>>,
-    pub binded_char: RefCell<HashMap<String, Vec<OrbParts>>>,
+pub enum ApplicationScreens {
+    Initial,
+    FontMapping(FontMappingState),
 }
 
 #[derive(Debug)]
@@ -40,16 +31,26 @@ pub struct HardwareState {
 }
 
 #[derive(Debug)]
-pub struct ApplicationState {
-    pub hardware: HardwareState,
-    // so on
+pub struct ApplicationSettingsData {
+    pub font_ids: RefCell<Vec<FontId>>,
 }
 
-pub type AppStateType = Rc<AppState>;
+#[derive(Debug)]
+pub struct ApplicationState {
+    pub hardware: HardwareState,
+    pub app_data: ApplicationSettingsData,
+    pub current_screen: RefCell<ApplicationScreens>,
+}
 
-impl AppState {
+pub type ApplicationStateType = Rc<ApplicationState>;
+
+impl ApplicationState {
+    pub fn change_screen(&self, screen: ApplicationScreens) {
+        *self.current_screen.borrow_mut() = screen;
+    }
+
     pub fn had_click(&self) -> bool {
-        let mut had_click = self.had_click.borrow_mut();
+        let mut had_click = self.hardware.hit_click.borrow_mut();
         if let Some(element_state) = *had_click {
             if element_state == ElementState::Pressed {
                 *had_click = None;
@@ -65,18 +66,18 @@ impl AppState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),                //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),             //cx,cy - r
 }
 
 pub struct OrbPath {
     pub path: Path,
     pub paint: Paint,
     pub font_fill_kind: FontFillKind,
-    pub bound: OrbPathBounds
+    pub bound: OrbPathBounds,
 }
 
 pub enum GlihpPatternCheck {
     Available,
-    Unavailable
+    Unavailable,
 }

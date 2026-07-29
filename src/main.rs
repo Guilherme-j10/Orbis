@@ -1,10 +1,12 @@
-use std::{cell::{Cell, RefCell}, collections::HashMap, path::PathBuf, rc::Rc, sync::Arc};
+use std::{cell::RefCell, path::PathBuf, rc::Rc, sync::Arc};
 
 use femtovg::{Canvas, Color};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{
-    interfaces::app::{AppScreens, AppState, MousePosition},
+    interfaces::app::{
+        ApplicationScreens, ApplicationSettingsData, ApplicationState, HardwareState, MousePosition,
+    },
     screens::controller::Controller,
     wgpu::{Callbacks, WindowSurface},
 };
@@ -25,15 +27,18 @@ fn run<W: WindowSurface + 'static>(
     mut surface: W,
     window: Arc<Window>,
 ) -> Callbacks {
-    let app_state = Rc::new(AppState {
-        mouse: RefCell::new(MousePosition::default()),
-        current_screen: Cell::new(AppScreens::Initial),
-        font_ids: RefCell::new(vec![]),
-        binded_char: RefCell::new(HashMap::default()),
-        had_click: RefCell::new(None),
+    let app_state = Rc::new(ApplicationState {
+        hardware: HardwareState {
+            mouse: RefCell::new(MousePosition::default()),
+            hit_click: RefCell::new(None),
+        },
+        app_data: ApplicationSettingsData {
+            font_ids: RefCell::new(vec![]),
+        },
+        current_screen: RefCell::new(ApplicationScreens::Initial),
     });
 
-    let mut fonts_ids = app_state.font_ids.borrow_mut();
+    let mut fonts_ids = app_state.app_data.font_ids.borrow_mut();
     let font_path = PathBuf::from("font/Saira");
     match font_path.canonicalize() {
         Ok(path) => {
@@ -68,14 +73,14 @@ fn run<W: WindowSurface + 'static>(
                 state: mouse_state,
                 button: _,
             } => {
-                let mut had_click = state.had_click.borrow_mut();
+                let mut had_click = state.hardware.hit_click.borrow_mut();
                 *had_click = Some(mouse_state);
             }
             WindowEvent::CursorMoved {
                 device_id: _,
                 position,
             } => {
-                let mut mpos = state.mouse.borrow_mut();
+                let mut mpos = state.hardware.mouse.borrow_mut();
                 mpos.x = position.x;
                 mpos.y = position.y
             }

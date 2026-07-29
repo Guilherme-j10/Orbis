@@ -5,12 +5,14 @@ use femtovg::{Canvas, Color, Paint, Renderer};
 use crate::{
     font_engine::font::{FontFillKind, FontPadding, OrbFont, OrbParts},
     interfaces::app::{
-        AppStateType, ContextPoints, GlihpPatternCheck, MousePosition, OrbPath, OrbPathBounds,
+        ApplicationStateType, ContextPoints, FontMappingState, GlihpPatternCheck, MousePosition,
+        OrbPath, OrbPathBounds,
     },
 };
 
-pub struct FontMask {
-    pub state: AppStateType,
+pub struct FontMask<'a> {
+    pub app_state: ApplicationStateType,
+    pub state: &'a FontMappingState,
     pub bind_char: &'static str,
 }
 
@@ -22,14 +24,22 @@ pub struct FontMaskProp<'a, T: Renderer> {
     pub draw_box: Option<bool>,
 }
 
-impl FontMask {
-    pub fn new(state: AppStateType, bind_char: &'static str) -> Self {
-        Self { state, bind_char }
+impl<'a> FontMask<'a> {
+    pub fn new(
+        app_state: ApplicationStateType,
+        state: &'a FontMappingState,
+        bind_char: &'static str,
+    ) -> Self {
+        Self {
+            app_state,
+            state,
+            bind_char,
+        }
     }
 
-    pub fn initialize<'a, T: Renderer>(&mut self, props: FontMaskProp<'a, T>) -> () {
+    pub fn initialize<'t, T: Renderer>(&mut self, props: FontMaskProp<'t, T>) -> () {
         let mouse_position = {
-            let mouse = self.state.mouse.borrow();
+            let mouse = self.app_state.hardware.mouse.borrow();
             MousePosition {
                 x: mouse.x,
                 y: mouse.y,
@@ -61,7 +71,7 @@ impl FontMask {
         .draw();
 
         let fonts_ids = {
-            let ids = self.state.font_ids.borrow();
+            let ids = self.app_state.app_data.font_ids.borrow();
             ids.clone()
         };
         let color = match Self::check_pattern(self.bind_char, &self.state) {
@@ -109,7 +119,7 @@ impl FontMask {
         }
     }
 
-    pub fn check_pattern(current_bind: &str, state: &AppStateType) -> GlihpPatternCheck {
+    pub fn check_pattern(current_bind: &str, state: &FontMappingState) -> GlihpPatternCheck {
         let state = state.binded_char.borrow();
         let mut current_pattern = state
             .get(current_bind)
@@ -238,7 +248,7 @@ impl FontMask {
     }
 
     pub fn handle_click_in(&mut self, part: &OrbParts) -> () {
-        if self.state.had_click() == true {
+        if self.app_state.had_click() == true {
             if let Some(storage) = self.state.binded_char.borrow_mut().get_mut(self.bind_char) {
                 let part = part.clone();
 
