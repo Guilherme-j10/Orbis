@@ -42,7 +42,7 @@ impl<'a, T: Renderer> UIButton<'a, T> {
         canvas: &'a mut Canvas<T>,
         text: &'static str,
         style: Vec<StyleProp>,
-        on_click: Option<Box<dyn Fn() -> ()>>
+        on_click: Option<Box<dyn Fn() -> ()>>,
     ) -> Self {
         Self {
             app_state,
@@ -111,15 +111,12 @@ impl<'a, T: Renderer> UIButton<'a, T> {
         let mx = mouse.x as f32;
         let my = mouse.y as f32;
 
-        if (mx >= x && my >= y) && (mx <= x + w && my <= y + h) {
-            return true;
-        }
-        false
+        mx >= x && my >= y && mx <= x + w && my <= y + h
     }
 
     fn button_clicked(&self, x: f32, y: f32, w: f32, h: f32) -> () {
         if self.app_state.had_click() && self.is_mouse_over(x, y, w, h) {
-            if let Some(ref callback) = self.on_click {
+            if let Some(callback) = &self.on_click {
                 callback();
             }
         }
