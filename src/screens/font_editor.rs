@@ -2,11 +2,15 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
+    components::button::{StyleProp, UIButton},
     font_engine::{
         dimensions::FontDimension,
         font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
-    }, interfaces::app::{ApplicationScreens, ApplicationStateType, FontMappingState, GlihpPatternCheck},
+    },
+    interfaces::app::{
+        ApplicationScreens, ApplicationStateType, FontMappingState, GlihpPatternCheck,
+    },
 };
 
 pub struct FontEditorScreen<'a, T: Renderer> {
@@ -111,6 +115,35 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             println!("Ready to save file state");
             //here we can draw a button to save the file
         }
+
+        let mut button = UIButton::new(
+            self.app_state.clone(),
+            self.canvas,
+            "Save this font mapping",
+            vec![
+                StyleProp::JustifyCenter(None),
+                StyleProp::AlignCenter(None),
+                StyleProp::Padding(20.0, 10.0),
+                StyleProp::Background(Color::rgb(32, 32, 42)),
+                StyleProp::MarginTop(60.0),
+                StyleProp::TextColor(Color::rgb(255, 255, 255)),
+                StyleProp::TextSize(15.0),
+                StyleProp::Font(vec![
+                    self.app_state
+                        .app_data
+                        .font_ids
+                        .borrow()
+                        .first()
+                        .unwrap()
+                        .clone(),
+                ]),
+            ],
+            Some(Box::new(|| {
+                println!("Save this font mapping");
+            })),
+        );
+
+        button.draw();
 
         None
     }

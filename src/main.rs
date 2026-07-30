@@ -1,5 +1,6 @@
 use std::{cell::RefCell, path::PathBuf, rc::Rc, sync::Arc};
 
+use directories::ProjectDirs;
 use femtovg::{Canvas, Color};
 use winit::{event::WindowEvent, window::Window};
 
@@ -17,9 +18,10 @@ mod interfaces;
 mod screens;
 mod utils;
 mod wgpu;
+mod components;
 
 fn main() {
-    wgpu::start_wgpu(1440, 900, "Orbis", false);
+    wgpu::start_wgpu(1440, 900, "Orbis", true);
 }
 
 fn run<W: WindowSurface + 'static>(
@@ -34,8 +36,11 @@ fn run<W: WindowSurface + 'static>(
         },
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
+            project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")
+                .expect("failed to get project dirs"),
         },
         current_screen: RefCell::new(ApplicationScreens::Initial),
+        window: window.clone(),
     });
 
     let mut fonts_ids = app_state.app_data.font_ids.borrow_mut();
