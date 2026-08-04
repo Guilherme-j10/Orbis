@@ -1,4 +1,4 @@
-use crate::{font_engine::font::FontPadding, utils::interpolation};
+use crate::{font_engine::font::FontPadding, utils::math::interpolation};
 
 pub struct FontDimension<'a> {
     _font_size: f32,

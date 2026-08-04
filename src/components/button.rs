@@ -33,7 +33,7 @@ pub struct UIButton<'a, T: Renderer> {
     pub text: &'static str,
     pub style: Vec<StyleProp>,
     path: Path,
-    on_click: Option<Box<dyn Fn() -> ()>>,
+    on_click: Option<Box<dyn Fn() -> () + 'a>>,
 }
 
 impl<'a, T: Renderer> UIButton<'a, T> {
@@ -42,7 +42,7 @@ impl<'a, T: Renderer> UIButton<'a, T> {
         canvas: &'a mut Canvas<T>,
         text: &'static str,
         style: Vec<StyleProp>,
-        on_click: Option<Box<dyn Fn() -> ()>>,
+        on_click: Option<Box<dyn Fn() -> () + 'a>>,
     ) -> Self {
         Self {
             app_state,

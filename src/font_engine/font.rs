@@ -1,13 +1,14 @@
 use std::f32::consts::PI;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     interfaces::app::{OrbPath, OrbPathBounds},
-    utils::interpolation,
+    utils::math::interpolation,
 };
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum OrbParts {
     CircleBase = 1,
     CircleSmallCenter = 2,
