@@ -7,8 +7,8 @@ use std::{
 use directories::ProjectDirs;
 
 use crate::{
-    font_engine::font::OrbParts,
     dtos::app::FontMappingState,
+    font_engine::font::OrbParts,
     utils::constants::{MAGIC, MAP_FILE_NAME, VERSION},
 };
 
@@ -20,6 +20,16 @@ pub struct Settings {
 impl Settings {
     pub fn new(pd: &ProjectDirs) -> Self {
         let data_local_dir = pd.data_local_dir();
+        match data_local_dir.try_exists() {
+            Ok(result) => {
+                if result == false {
+                    std::fs::create_dir_all(data_local_dir).expect("Error in set local data dir");
+                }
+            }
+            Err(e) => {
+                panic!("Error in verificate local data dir: {e}");
+            }
+        }
 
         Self {
             local_file_mapping: data_local_dir.join(MAP_FILE_NAME),

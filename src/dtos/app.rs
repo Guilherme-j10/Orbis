@@ -1,8 +1,7 @@
-use std::{cell::RefCell, collections::HashMap, hash::{Hash, Hasher}, rc::Rc, sync::Arc, time::{Duration, SystemTime}};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc, time::SystemTime};
 
 use directories::ProjectDirs;
 use femtovg::{FontId, Paint, Path};
-use rustc_hash::FxHasher;
 use winit::{event::ElementState, window::Window};
 
 use crate::{
@@ -27,7 +26,7 @@ pub struct FontMappingState {
 pub enum ApplicationScreens {
     Initial,
     FontMapping(FontMappingState),
-    Editor
+    Editor,
 }
 
 #[derive(Debug)]

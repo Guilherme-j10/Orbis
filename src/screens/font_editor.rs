@@ -142,7 +142,9 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                     match settings.save(&self.state_screen) {
                         Ok(save_local) => {
                             self.app_state
-                                .push_notification(NotificationKind::Info(save_local));
+                                .push_notification(NotificationKind::Info(format!(
+                                    "font mapping save at: {save_local}"
+                                )));
                             font_mapping_file_was_save.set(true);
                         }
                         Err(e) => self

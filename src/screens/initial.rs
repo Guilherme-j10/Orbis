@@ -45,7 +45,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
     pub fn render(&mut self) -> Option<ApplicationScreens> {
         let fonts_ids = self.app_state.app_data.font_ids.borrow();
         let settings = Settings::new(&self.app_state.app_data.project_dirs);
-        let result = settings.load(); // this can fail to
+        let _ = settings.load(); // this can fail to
         let _have_font_map = false;
 
         let center_x = (self.bounds.0 + self.width) / 2.0;
