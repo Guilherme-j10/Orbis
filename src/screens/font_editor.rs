@@ -1,17 +1,18 @@
+use std::{cell::Cell, rc::Rc};
+
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
     components::button::{StyleProp, UIButton},
     core::settings::Settings,
+    dtos::app::{ApplicationScreens, ApplicationStateType, FontMappingState, GlihpPatternCheck},
     font_engine::{
         dimensions::FontDimension,
         font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
     },
-    interfaces::app::{
-        ApplicationScreens, ApplicationStateType, FontMappingState, GlihpPatternCheck,
-    },
+    utils::notification::NotificationKind,
 };
 
 pub struct FontEditorScreen<'a, T: Renderer> {
@@ -103,6 +104,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
             }
         }
 
+        let font_mapping_file_was_save = Rc::new(Cell::new(false));
         if self.state_screen.binded_char.borrow().len() == chars.len() {
             for bind in chars.into_iter() {
                 match FontMask::check_pattern(bind, &self.state_screen) {
@@ -137,11 +139,24 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                 ],
                 Some(Box::new(|| {
                     let settings = Settings::new(&self.app_state.app_data.project_dirs);
-                    settings.save(&self.state_screen); //here can fail
+                    match settings.save(&self.state_screen) {
+                        Ok(save_local) => {
+                            self.app_state
+                                .push_notification(NotificationKind::Info(save_local));
+                            font_mapping_file_was_save.set(true);
+                        }
+                        Err(e) => self
+                            .app_state
+                            .push_notification(NotificationKind::Error(e.to_string())),
+                    }
                 })),
             );
 
             button.draw();
+        }
+
+        if font_mapping_file_was_save.get() == true {
+            return Some(ApplicationScreens::Editor);
         }
 
         None

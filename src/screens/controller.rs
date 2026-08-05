@@ -2,7 +2,7 @@ use femtovg::{Canvas, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
-    interfaces::app::{ApplicationScreens, ApplicationStateType},
+    dtos::app::{ApplicationScreens, ApplicationStateType},
     screens::{font_editor::FontEditorScreen, initial::InitialScreen},
 };
 
@@ -29,6 +29,10 @@ impl Controller {
                     &psize,
                 );
                 init.render()
+            }
+            ApplicationScreens::Editor => {
+                println!("Editor screen");
+                None
             }
         };
 

@@ -8,7 +8,7 @@ use directories::ProjectDirs;
 
 use crate::{
     font_engine::font::OrbParts,
-    interfaces::app::FontMappingState,
+    dtos::app::FontMappingState,
     utils::constants::{MAGIC, MAP_FILE_NAME, VERSION},
 };
 

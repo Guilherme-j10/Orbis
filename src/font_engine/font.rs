@@ -4,7 +4,7 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    interfaces::app::{OrbPath, OrbPathBounds},
+    dtos::app::{OrbPath, OrbPathBounds},
     utils::math::interpolation,
 };
 

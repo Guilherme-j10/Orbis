@@ -5,20 +5,21 @@ use femtovg::{Canvas, Color};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{
-    interfaces::app::{
+    dtos::app::{
         ApplicationScreens, ApplicationSettingsData, ApplicationState, HardwareState, MousePosition,
     },
     screens::controller::Controller,
+    utils::notification::NotificationRender,
     wgpu::{Callbacks, WindowSurface},
 };
 
+mod components;
 mod core;
+mod dtos;
 mod font_engine;
-mod interfaces;
 mod screens;
 mod utils;
 mod wgpu;
-mod components;
 
 fn main() {
     wgpu::start_wgpu(1440, 900, "Orbis", true);
@@ -41,6 +42,7 @@ fn run<W: WindowSurface + 'static>(
         },
         current_screen: RefCell::new(ApplicationScreens::Initial),
         window: window.clone(),
+        notification_timers: RefCell::new(Vec::default()),
     });
 
     let mut fonts_ids = app_state.app_data.font_ids.borrow_mut();
@@ -70,6 +72,9 @@ fn run<W: WindowSurface + 'static>(
 
                 let state_wrapper = state.clone();
                 Controller::render(&mut canvas, state_wrapper, &size);
+
+                let mut notification = NotificationRender::new(&mut canvas, state.clone());
+                notification.render_loop();
 
                 surface.present(&mut canvas);
             }

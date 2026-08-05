@@ -4,7 +4,7 @@ use femtovg::{Canvas, Color, Paint, Renderer};
 
 use crate::{
     font_engine::font::{FontFillKind, FontPadding, OrbFont, OrbParts},
-    interfaces::app::{
+    dtos::app::{
         ApplicationStateType, ContextPoints, FontMappingState, GlihpPatternCheck, MousePosition,
         OrbPath, OrbPathBounds,
     },

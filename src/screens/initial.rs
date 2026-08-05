@@ -3,7 +3,10 @@ use std::f32::consts::PI;
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
-use crate::{core::settings::Settings, interfaces::app::{ApplicationScreens, ApplicationStateType, FontMappingState}};
+use crate::{
+    core::settings::Settings,
+    dtos::app::{ApplicationScreens, ApplicationStateType, FontMappingState},
+};
 
 pub struct InitialScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
@@ -101,7 +104,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
             .expect("Failed to fill text");
 
         if self.app_state.had_click() == true {
-            return Some(ApplicationScreens::FontMapping(FontMappingState::default()))
+            return Some(ApplicationScreens::FontMapping(FontMappingState::default()));
         }
 
         None

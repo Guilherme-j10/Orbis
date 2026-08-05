@@ -1,7 +1,7 @@
 use femtovg::{Align, Baseline, Canvas, Color, FontId, Paint, Path, Renderer};
 use winit::window::CursorIcon;
 
-use crate::interfaces::app::ApplicationStateType;
+use crate::dtos::app::ApplicationStateType;
 
 pub enum StyleProp {
     JustifyCenter(Option<(f32, f32)>), // x, w

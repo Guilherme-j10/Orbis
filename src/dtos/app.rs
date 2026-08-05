@@ -1,10 +1,14 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc};
+use std::{cell::RefCell, collections::HashMap, hash::{Hash, Hasher}, rc::Rc, sync::Arc, time::{Duration, SystemTime}};
 
 use directories::ProjectDirs;
 use femtovg::{FontId, Paint, Path};
+use rustc_hash::FxHasher;
 use winit::{event::ElementState, window::Window};
 
-use crate::font_engine::font::{FontFillKind, OrbParts};
+use crate::{
+    font_engine::font::{FontFillKind, OrbParts},
+    utils::notification::{Notification, NotificationKind},
+};
 
 pub type ContextPoints = (f32, f32);
 
@@ -23,6 +27,7 @@ pub struct FontMappingState {
 pub enum ApplicationScreens {
     Initial,
     FontMapping(FontMappingState),
+    Editor
 }
 
 #[derive(Debug)]
@@ -42,12 +47,20 @@ pub struct ApplicationState {
     pub hardware: HardwareState,
     pub app_data: ApplicationSettingsData,
     pub current_screen: RefCell<ApplicationScreens>,
-    pub window: Arc<Window>
+    pub window: Arc<Window>,
+    pub notification_timers: RefCell<Vec<Notification>>,
 }
 
 pub type ApplicationStateType = Rc<ApplicationState>;
 
 impl ApplicationState {
+    pub fn push_notification(&self, kind: NotificationKind) -> () {
+        self.notification_timers.borrow_mut().push(Notification {
+            kind,
+            create_at: SystemTime::now(),
+        });
+    }
+
     pub fn change_screen(&self, screen: ApplicationScreens) {
         *self.current_screen.borrow_mut() = screen;
     }
@@ -69,8 +82,8 @@ impl ApplicationState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),                //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),             //cx,cy - r
 }
 
 pub struct OrbPath {
