@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
-use crate::interfaces::app::{ApplicationScreens, ApplicationStateType, FontMappingState};
+use crate::{core::settings::Settings, interfaces::app::{ApplicationScreens, ApplicationStateType, FontMappingState}};
 
 pub struct InitialScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
@@ -41,6 +41,8 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
 
     pub fn render(&mut self) -> Option<ApplicationScreens> {
         let fonts_ids = self.app_state.app_data.font_ids.borrow();
+        let settings = Settings::new(&self.app_state.app_data.project_dirs);
+        let result = settings.load(); // this can fail to
         let _have_font_map = false;
 
         let center_x = (self.bounds.0 + self.width) / 2.0;

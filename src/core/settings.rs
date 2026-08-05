@@ -1,36 +1,69 @@
-use std::io::{self, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Read, Write},
+    path::PathBuf,
+};
 
 use directories::ProjectDirs;
 
 use crate::{
+    font_engine::font::OrbParts,
     interfaces::app::FontMappingState,
     utils::constants::{MAGIC, MAP_FILE_NAME, VERSION},
 };
 
 #[derive(Debug)]
-pub struct Settings<'a> {
-    project_dirs: &'a ProjectDirs,
+pub struct Settings {
+    local_file_mapping: PathBuf,
 }
 
-impl<'a> Settings<'a> {
-    pub fn new(pd: &'a ProjectDirs) -> Self {
-        Self { project_dirs: pd }
+impl Settings {
+    pub fn new(pd: &ProjectDirs) -> Self {
+        let data_local_dir = pd.data_local_dir();
+
+        Self {
+            local_file_mapping: data_local_dir.join(MAP_FILE_NAME),
+        }
     }
 
     pub fn save(&self, data: &FontMappingState) -> Result<String, std::io::Error> {
-        let local_dir = self.project_dirs.data_local_dir();
         let bind_chars_data = data.binded_char.borrow().clone();
 
         let payload = bincode::serialize(&bind_chars_data)
             .map_err(|e| std::io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        let local_file = local_dir.join(MAP_FILE_NAME);
-        let mut file = std::fs::File::create(&local_file)?;
+        let mut file = std::fs::File::create(&self.local_file_mapping)?;
         file.write_all(&MAGIC)?;
         file.write_all(&[VERSION])?;
         file.write_all(&payload)?;
 
-        let local_save = local_file.to_string_lossy().to_string();
+        let local_save = self.local_file_mapping.to_string_lossy().to_string();
         Ok(local_save)
+    }
+
+    pub fn load(&self) -> Result<HashMap<String, Vec<OrbParts>>, std::io::Error> {
+        let mut file = std::fs::File::open(&self.local_file_mapping)?;
+        let mut buffer_file = Vec::new();
+        file.read_to_end(&mut buffer_file)?;
+
+        if buffer_file.len() < 5 || buffer_file[0..4] != MAGIC {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "file mapping is not a orb font mapping",
+            ));
+        }
+
+        let version = buffer_file[4];
+        if version != VERSION {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "this version of font mapping is not suported",
+            ));
+        }
+
+        let font_mapping: HashMap<String, Vec<OrbParts>> = bincode::deserialize(&buffer_file[5..])
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        Ok(font_mapping)
     }
 }
