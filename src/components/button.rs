@@ -4,11 +4,11 @@ use winit::window::CursorIcon;
 use crate::dtos::app::ApplicationStateType;
 
 pub enum StyleProp {
-    JustifyCenter(Option<(f32, f32)>), // x, w
-    AlignCenter(Option<(f32, f32)>),   // y, h
+    JustifyCenter(Option<(f32, f32)>),   // x, w
+    AlignCenter(Option<(f32, f32)>),     // y, h
     //Fixed(f32, f32),                   // x, y
     MarginTop(f32),
-    Padding(f32, f32), // horizontal, vertical
+    Padding(f32, f32),                   // horizontal, vertical
     Background(Color),
     TextColor(Color),
     TextSize(f32),

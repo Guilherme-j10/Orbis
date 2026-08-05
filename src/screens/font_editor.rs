@@ -20,7 +20,7 @@ pub struct FontEditorScreen<'a, T: Renderer> {
     app_state: ApplicationStateType,
     state_screen: &'a FontMappingState,
     _bounds: (f32, f32),
-    psize: &'a PhysicalSize<u32>,
+    psize: PhysicalSize<u32>,
 }
 
 impl<'a, T: Renderer> FontEditorScreen<'a, T> {
@@ -29,9 +29,9 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         app_state: ApplicationStateType,
         state_screen: &'a FontMappingState,
         bounds: (f32, f32),
-        psize: &'a PhysicalSize<u32>,
     ) -> Self {
         let mut screen = Path::new();
+        let psize = app_state.window.inner_size();
         screen.rect(
             bounds.0,
             bounds.1,

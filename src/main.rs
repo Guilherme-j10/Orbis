@@ -71,7 +71,7 @@ fn run<W: WindowSurface + 'static>(
                 canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(0, 0, 0));
 
                 let state_wrapper = state.clone();
-                Controller::render(&mut canvas, state_wrapper, &size);
+                Controller::render(&mut canvas, state_wrapper);
 
                 let mut notification = NotificationRender::new(&mut canvas, state.clone());
                 notification.render_loop();

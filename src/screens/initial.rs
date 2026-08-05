@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
-use winit::dpi::PhysicalSize;
 
 use crate::{
     core::settings::Settings,
@@ -21,9 +20,9 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
         canvas: &'a mut Canvas<T>,
         app_state: ApplicationStateType,
         bounds: (f32, f32),
-        psize: &PhysicalSize<u32>,
     ) -> Self {
         let mut screen = Path::new();
+        let psize = app_state.window.inner_size();
         screen.rect(
             bounds.0,
             bounds.1,

@@ -1,5 +1,4 @@
 use femtovg::{Canvas, Renderer};
-use winit::dpi::PhysicalSize;
 
 use crate::{
     dtos::app::{ApplicationScreens, ApplicationStateType},
@@ -12,12 +11,11 @@ impl Controller {
     pub fn render<T: Renderer>(
         canvas: &mut Canvas<T>,
         app_state: ApplicationStateType,
-        psize: &PhysicalSize<u32>,
     ) -> () {
         let screen = match &*app_state.current_screen.borrow() {
             ApplicationScreens::Initial => {
                 let mut init =
-                    InitialScreen::initialize(canvas, app_state.clone(), (0.0, 0.0), &psize);
+                    InitialScreen::initialize(canvas, app_state.clone(), (0.0, 0.0));
                 init.render()
             }
             ApplicationScreens::FontMapping(state_screen) => {
@@ -26,7 +24,6 @@ impl Controller {
                     app_state.clone(),
                     state_screen,
                     (0.0, 0.0),
-                    &psize,
                 );
                 init.render()
             }
