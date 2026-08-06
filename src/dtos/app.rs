@@ -10,6 +10,8 @@ use crate::{
 };
 
 pub type ContextPoints = (f32, f32);
+pub type ApplicationStateType = Rc<ApplicationState>;
+pub type MappedFont = HashMap<String, Vec<OrbParts>>;
 
 #[derive(Debug, Default)]
 pub struct MousePosition {
@@ -19,7 +21,7 @@ pub struct MousePosition {
 
 #[derive(Debug, Default)]
 pub struct FontMappingState {
-    pub binded_char: RefCell<HashMap<String, Vec<OrbParts>>>,
+    pub binded_char: RefCell<MappedFont>,
 }
 
 #[derive(Debug, Default)]
@@ -43,6 +45,7 @@ pub struct HardwareState {
 #[derive(Debug)]
 pub struct ApplicationSettingsData {
     pub font_ids: RefCell<Vec<FontId>>,
+    pub font_mapping: RefCell<MappedFont>,
     pub project_dirs: ProjectDirs,
 }
 
@@ -54,8 +57,6 @@ pub struct ApplicationState {
     pub window: Arc<Window>,
     pub notification_timers: RefCell<Vec<Notification>>,
 }
-
-pub type ApplicationStateType = Rc<ApplicationState>;
 
 impl ApplicationState {
     pub fn push_notification(&self, kind: NotificationKind) -> () {
@@ -86,8 +87,8 @@ impl ApplicationState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),             //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),                //cx,cy - r
 }
 
 pub struct OrbPath {

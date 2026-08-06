@@ -53,9 +53,9 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
             self.state_screen.font_mapping_verificate.set(true);
 
             match settings.load() {
-                Ok(_mapping) => {
-                    //save mapping in state
-                    //forward the screen
+                Ok(mapping) => {
+                    self.app_state.app_data.font_mapping.replace(mapping);
+                    return Some(ApplicationScreens::Editor);
                 }
                 Err(error) => {
                     if error.kind() != ErrorKind::NotFound {
