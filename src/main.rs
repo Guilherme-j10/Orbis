@@ -1,4 +1,4 @@
-use std::{cell::RefCell, path::PathBuf, rc::Rc, sync::Arc};
+use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc, sync::Arc};
 
 use directories::ProjectDirs;
 use femtovg::{Canvas, Color};
@@ -38,6 +38,7 @@ fn run<W: WindowSurface + 'static>(
         },
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
+            font_mapping: RefCell::new(HashMap::default()),
             project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")
                 .expect("failed to get project dirs"),
         },
