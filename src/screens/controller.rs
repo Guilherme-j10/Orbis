@@ -8,14 +8,11 @@ use crate::{
 pub struct Controller;
 
 impl Controller {
-    pub fn render<T: Renderer>(
-        canvas: &mut Canvas<T>,
-        app_state: ApplicationStateType,
-    ) -> () {
+    pub fn render<T: Renderer>(canvas: &mut Canvas<T>, app_state: ApplicationStateType) -> () {
         let screen = match &*app_state.current_screen.borrow() {
-            ApplicationScreens::Initial => {
+            ApplicationScreens::Initial(state_screen) => {
                 let mut init =
-                    InitialScreen::initialize(canvas, app_state.clone(), (0.0, 0.0));
+                    InitialScreen::initialize(canvas, app_state.clone(), state_screen, (0.0, 0.0));
                 init.render()
             }
             ApplicationScreens::FontMapping(state_screen) => {

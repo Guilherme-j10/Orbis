@@ -1,15 +1,17 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, io::ErrorKind};
 
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
 use crate::{
     core::settings::Settings,
-    dtos::app::{ApplicationScreens, ApplicationStateType, FontMappingState},
+    dtos::app::{ApplicationScreens, ApplicationStateType, FontMappingState, InitialScreenState},
+    utils::notification::NotificationKind,
 };
 
 pub struct InitialScreen<'a, T: Renderer> {
     canvas: &'a mut Canvas<T>,
     app_state: ApplicationStateType,
+    state_screen: &'a InitialScreenState,
     bounds: (f32, f32),
     width: f32,
     height: f32,
@@ -19,6 +21,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
     pub fn initialize(
         canvas: &'a mut Canvas<T>,
         app_state: ApplicationStateType,
+        state_screen: &'a InitialScreenState,
         bounds: (f32, f32),
     ) -> Self {
         let mut screen = Path::new();
@@ -35,6 +38,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
         Self {
             canvas,
             app_state,
+            state_screen,
             bounds,
             height: psize.height as f32,
             width: psize.width as f32,
@@ -43,9 +47,26 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
 
     pub fn render(&mut self) -> Option<ApplicationScreens> {
         let fonts_ids = self.app_state.app_data.font_ids.borrow();
-        let settings = Settings::new(&self.app_state.app_data.project_dirs);
-        let _ = settings.load(); // this can fail to
-        let _have_font_map = false;
+
+        if self.state_screen.font_mapping_verificate.get() == false {
+            let settings = Settings::new(&self.app_state.app_data.project_dirs);
+            self.state_screen.font_mapping_verificate.set(true);
+
+            match settings.load() {
+                Ok(_mapping) => {
+                    //save mapping in state
+                    //forward the screen
+                }
+                Err(error) => {
+                    if error.kind() != ErrorKind::NotFound {
+                        self.app_state
+                            .push_notification(NotificationKind::Error(format!(
+                                "Fail in load file mapping: {error}"
+                            )));
+                    }
+                }
+            }
+        }
 
         let center_x = (self.bounds.0 + self.width) / 2.0;
         let center_y = (self.bounds.1 + self.height) / 2.0;

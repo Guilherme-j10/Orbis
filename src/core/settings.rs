@@ -59,7 +59,7 @@ impl Settings {
         if buffer_file.len() < 5 || buffer_file[0..4] != MAGIC {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                "file mapping is not a orb font mapping",
+                "corrupt or invalid mapping file",
             ));
         }
 

@@ -6,7 +6,8 @@ use winit::{event::WindowEvent, window::Window};
 
 use crate::{
     dtos::app::{
-        ApplicationScreens, ApplicationSettingsData, ApplicationState, HardwareState, MousePosition,
+        ApplicationScreens, ApplicationSettingsData, ApplicationState, HardwareState,
+        InitialScreenState, MousePosition,
     },
     screens::controller::Controller,
     utils::notification::NotificationRender,
@@ -40,7 +41,7 @@ fn run<W: WindowSurface + 'static>(
             project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")
                 .expect("failed to get project dirs"),
         },
-        current_screen: RefCell::new(ApplicationScreens::Initial),
+        current_screen: RefCell::new(ApplicationScreens::Initial(InitialScreenState::default())),
         window: window.clone(),
         notification_timers: RefCell::new(Vec::default()),
     });

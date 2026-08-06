@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc, time::SystemTime};
+use std::{cell::{Cell, RefCell}, collections::HashMap, rc::Rc, sync::Arc, time::SystemTime};
 
 use directories::ProjectDirs;
 use femtovg::{FontId, Paint, Path};
@@ -22,9 +22,14 @@ pub struct FontMappingState {
     pub binded_char: RefCell<HashMap<String, Vec<OrbParts>>>,
 }
 
+#[derive(Debug, Default)]
+pub struct InitialScreenState {
+    pub font_mapping_verificate: Cell<bool>
+}
+
 #[derive(Debug)]
 pub enum ApplicationScreens {
-    Initial,
+    Initial(InitialScreenState),
     FontMapping(FontMappingState),
     Editor,
 }
