@@ -3,9 +3,7 @@ use std::{f32::consts::PI, io::ErrorKind};
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
 use crate::{
-    core::settings::Settings,
-    dtos::app::{ApplicationScreens, ApplicationStateType, FontMappingState, InitialScreenState},
-    utils::notification::NotificationKind,
+    core::settings::Settings, dtos::app::{ApplicationScreens, ApplicationStateType, EditorScreenState, FontMappingState, InitialScreenState}, utils::notification::NotificationKind,
 };
 
 pub struct InitialScreen<'a, T: Renderer> {
@@ -55,7 +53,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
             match settings.load() {
                 Ok(mapping) => {
                     self.app_state.app_data.font_mapping.replace(mapping);
-                    return Some(ApplicationScreens::Editor);
+                    return Some(ApplicationScreens::Editor(EditorScreenState::default()));
                 }
                 Err(error) => {
                     if error.kind() != ErrorKind::NotFound {

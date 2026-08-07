@@ -2,7 +2,7 @@ use femtovg::{Canvas, Renderer};
 
 use crate::{
     dtos::app::{ApplicationScreens, ApplicationStateType},
-    screens::{font_editor::FontEditorScreen, initial::InitialScreen},
+    screens::{editor::Editor, font_editor::FontEditorScreen, initial::InitialScreen},
 };
 
 pub struct Controller;
@@ -24,9 +24,9 @@ impl Controller {
                 );
                 init.render()
             }
-            ApplicationScreens::Editor => {
-                println!("Editor screen");
-                None
+            ApplicationScreens::Editor(editor_state) => {
+                let mut editor = Editor::new(canvas, app_state.clone(), editor_state);
+                editor.render()
             }
         };
 

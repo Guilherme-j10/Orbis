@@ -4,15 +4,11 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
-    components::button::{StyleProp, UIButton},
-    core::settings::Settings,
-    dtos::app::{ApplicationScreens, ApplicationStateType, FontMappingState, GlihpPatternCheck},
-    font_engine::{
+    components::button::{StyleProp, UIButton}, core::settings::Settings, dtos::app::{ApplicationScreens, ApplicationStateType, EditorScreenState, FontMappingState, GlihpPatternCheck}, font_engine::{
         dimensions::FontDimension,
         font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
-    },
-    utils::notification::NotificationKind,
+    }, utils::notification::NotificationKind,
 };
 
 pub struct FontEditorScreen<'a, T: Renderer> {
@@ -158,7 +154,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
         }
 
         if font_mapping_file_was_save.get() == true {
-            return Some(ApplicationScreens::Editor);
+            return Some(ApplicationScreens::Editor(EditorScreenState::default()));
         }
 
         None

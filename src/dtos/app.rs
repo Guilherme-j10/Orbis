@@ -29,11 +29,14 @@ pub struct InitialScreenState {
     pub font_mapping_verificate: Cell<bool>
 }
 
+#[derive(Debug, Default)]
+pub struct EditorScreenState;
+
 #[derive(Debug)]
 pub enum ApplicationScreens {
     Initial(InitialScreenState),
     FontMapping(FontMappingState),
-    Editor,
+    Editor(EditorScreenState),
 }
 
 #[derive(Debug)]
