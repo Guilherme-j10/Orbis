@@ -1,4 +1,13 @@
-use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc, sync::Arc};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    path::PathBuf,
+    rc::Rc,
+    sync::{
+        Arc,
+        mpsc::{self, Receiver, Sender},
+    },
+};
 
 use directories::ProjectDirs;
 use femtovg::{Canvas, Color};
@@ -7,7 +16,7 @@ use winit::{event::WindowEvent, window::Window};
 use crate::{
     dtos::app::{
         ApplicationScreens, ApplicationSettingsData, ApplicationState, HardwareState,
-        InitialScreenState, MousePosition,
+        InitialScreenState, MousePosition, OrbGliph, SendOrbInfo,
     },
     screens::controller::Controller,
     utils::notification::NotificationRender,
@@ -23,14 +32,17 @@ mod utils;
 mod wgpu;
 
 fn main() {
-    wgpu::start_wgpu(1440, 900, "Orbis", true);
+    let (tx, rx) = mpsc::channel::<OrbGliph>();
+    wgpu::start_wgpu(1440, 900, "Orbis", true, (tx, rx));
 }
 
 fn run<W: WindowSurface + 'static>(
     mut canvas: Canvas<W::Renderer>,
     mut surface: W,
     window: Arc<Window>,
+    key_event_channel: (Sender<OrbGliph>, Option<Receiver<OrbGliph>>),
 ) -> Callbacks {
+    let receiver = key_event_channel.1.unwrap();
     let app_state = Rc::new(ApplicationState {
         hardware: HardwareState {
             mouse: RefCell::new(MousePosition::default()),
@@ -39,6 +51,7 @@ fn run<W: WindowSurface + 'static>(
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
             font_mapping: RefCell::new(HashMap::default()),
+            receiver_key_event: receiver,
             project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")
                 .expect("failed to get project dirs"),
         },
@@ -70,7 +83,7 @@ fn run<W: WindowSurface + 'static>(
                 let size = window.inner_size();
 
                 canvas.set_size(size.width, size.height, dpi_factor as f32);
-                canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(0, 0, 0));
+                canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(10, 10, 14));
 
                 let state_wrapper = state.clone();
                 Controller::render(&mut canvas, state_wrapper);
@@ -87,6 +100,11 @@ fn run<W: WindowSurface + 'static>(
             } => {
                 let mut had_click = state.hardware.hit_click.borrow_mut();
                 *had_click = Some(mouse_state);
+            }
+            WindowEvent::KeyboardInput { event, .. } => {
+                key_event_channel
+                    .0
+                    .send_font(event, &*state.app_data.font_mapping.borrow());
             }
             WindowEvent::CursorMoved {
                 device_id: _,

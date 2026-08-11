@@ -1,4 +1,7 @@
-use std::sync::Arc;
+use std::sync::{
+    Arc,
+    mpsc::{self},
+};
 
 use femtovg::{Canvas, Color, renderer::WGPURenderer};
 use winit::{
@@ -7,6 +10,8 @@ use winit::{
     event_loop::{ActiveEventLoop, EventLoop},
     window::Window,
 };
+
+use crate::dtos::app::OrbGliph;
 
 use super::run;
 
@@ -60,6 +65,7 @@ struct WgpuApp {
     resizeable: bool,
     callbacks: Option<Callbacks>,
     window: Option<Arc<Window>>,
+    key_event_channel: (mpsc::Sender<OrbGliph>, Option<mpsc::Receiver<OrbGliph>>),
 }
 
 impl ApplicationHandler for WgpuApp {
@@ -158,7 +164,15 @@ impl ApplicationHandler for WgpuApp {
         window.focus_window();
         window.set_visible(true);
 
-        self.callbacks = Some(run(canvas, demo_surface, window));
+        self.callbacks = Some(run(
+            canvas,
+            demo_surface,
+            window,
+            (
+                self.key_event_channel.0.clone(),
+                self.key_event_channel.1.take(),
+            ),
+        ));
     }
 
     fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
@@ -173,8 +187,8 @@ impl ApplicationHandler for WgpuApp {
         device_id: winit::event::DeviceId,
         event: DeviceEvent,
     ) {
-        if let Some(ref mut callbacks) = self.callbacks {
-            if let Some(ref mut device_cb) = callbacks.device_event {
+        if let Some(callbacks) = &mut self.callbacks {
+            if let Some(device_cb) = &mut callbacks.device_event {
                 device_cb(device_id, event, event_loop);
             }
         }
@@ -186,13 +200,19 @@ impl ApplicationHandler for WgpuApp {
         _window_id: winit::window::WindowId,
         event: WindowEvent,
     ) {
-        if let Some(ref mut callbacks) = self.callbacks {
+        if let Some(callbacks) = &mut self.callbacks {
             (callbacks.window_event)(event, event_loop);
         }
     }
 }
 
-pub fn start_wgpu(width: u32, height: u32, title: &'static str, resizeable: bool) -> () {
+pub fn start_wgpu(
+    width: u32,
+    height: u32,
+    title: &'static str,
+    resizeable: bool,
+    sender: (mpsc::Sender<OrbGliph>, mpsc::Receiver<OrbGliph>),
+) -> () {
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
 
@@ -203,6 +223,7 @@ pub fn start_wgpu(width: u32, height: u32, title: &'static str, resizeable: bool
         resizeable,
         callbacks: None,
         window: None,
+        key_event_channel: (sender.0, Some(sender.1)),
     };
 
     event_loop.run_app(&mut app).unwrap();
