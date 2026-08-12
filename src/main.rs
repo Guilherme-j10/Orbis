@@ -42,7 +42,6 @@ fn run<W: WindowSurface + 'static>(
     window: Arc<Window>,
     key_event_channel: (Sender<OrbGliph>, Option<Receiver<OrbGliph>>),
 ) -> Callbacks {
-    let receiver = key_event_channel.1.unwrap();
     let app_state = Rc::new(ApplicationState {
         hardware: HardwareState {
             mouse: RefCell::new(MousePosition::default()),
@@ -51,7 +50,7 @@ fn run<W: WindowSurface + 'static>(
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
             font_mapping: RefCell::new(HashMap::default()),
-            receiver_key_event: receiver,
+            receiver_key_event: key_event_channel.1.unwrap(),
             project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")
                 .expect("failed to get project dirs"),
         },

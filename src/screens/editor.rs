@@ -1,4 +1,5 @@
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
+use winit::keyboard::KeyCode;
 
 use crate::dtos::app::{
     ApplicationScreens, ApplicationStateType, EditorLayoutData, EditorScreenState, OrbKeyEvent,
@@ -18,17 +19,6 @@ impl<'a, T: Renderer> Editor<'a, T> {
         app_state: ApplicationStateType,
         screen_state: &'a EditorScreenState,
     ) -> Self {
-        if let Ok(pressed_gliph) = app_state.app_data.receiver_key_event.try_recv() {
-            match pressed_gliph {
-                OrbKeyEvent::Gliph(gliph) => {
-                    println!("{:?}", gliph)
-                },
-                OrbKeyEvent::RawKey(key) => {
-                    println!("{:?}", key)
-                }
-            }
-        }
-
         let window_size = app_state.window.inner_size();
 
         let bounds_side_file = (0.0, 0.0, 250.0, window_size.height as f32);
@@ -84,7 +74,43 @@ impl<'a, T: Renderer> Editor<'a, T> {
         }
     }
 
+    pub fn _has_focus_on(&self, label: &'static str) -> (bool, Path) {
+        let container = self.laylou_list.iter().find(|l| l.label == label).unwrap();
+        let coords = self.screen_state.last_click_at.get();
+        let bounds = container.bounds;
+
+        (
+            (coords.0 >= bounds.0 && coords.0 <= bounds.0 + bounds.2)
+                && (coords.1 >= bounds.1 && coords.1 <= bounds.1 + bounds.3),
+            container.path.clone(),
+        )
+    }
+
+    pub fn _highlight_focus(&mut self) -> () {
+        let has_focus = self._has_focus_on("main_container");
+        if has_focus.0 {
+            self.canvas.stroke_path(
+                &has_focus.1,
+                &Paint::color(Color::rgb(255, 0, 0)).with_line_width(1.0),
+            );
+        }
+    }
+
     pub fn render(&mut self) -> Option<ApplicationScreens> {
+        if let Ok(pressed_gliph) = self.app_state.app_data.receiver_key_event.try_recv() {
+            match pressed_gliph {
+                OrbKeyEvent::Gliph(gliph) => {
+                    if self._has_focus_on("main_container").0 {
+                        println!("{:?}", gliph)
+                    }
+                }
+                OrbKeyEvent::RawKey(key) => match key {
+                    KeyCode::Escape => self.screen_state.last_click_at.set((0.0, 0.0)),
+                    _ => {}
+                },
+            }
+        }
+
         None
     }
 }
