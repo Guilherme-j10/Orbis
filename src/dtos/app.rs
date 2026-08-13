@@ -10,7 +10,7 @@ use std::{
 };
 
 use directories::ProjectDirs;
-use femtovg::{FontId, Paint, Path};
+use femtovg::{Canvas, FontId, Paint, Path, Renderer};
 use winit::{
     event::{ElementState, KeyEvent},
     keyboard::{KeyCode, PhysicalKey},
@@ -18,6 +18,7 @@ use winit::{
 };
 
 use crate::{
+    core::buffer::FileBuffer,
     font_engine::font::{FontFillKind, OrbParts},
     utils::notification::{Notification, NotificationKind},
 };
@@ -32,14 +33,6 @@ pub type OrbGliph = OrbKeyEvent;
 pub type ContextPoints = (f32, f32);
 pub type ApplicationStateType = Rc<ApplicationState>;
 pub type MappedFont = HashMap<String, Vec<OrbParts>>;
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct EditorLayoutData {
-    pub bounds: EditorLayoutBound,
-    pub path: Path,
-    pub label: &'static str,
-}
 
 #[derive(Debug, Default)]
 pub struct MousePosition {
@@ -57,9 +50,69 @@ pub struct InitialScreenState {
     pub font_mapping_verificate: Cell<bool>,
 }
 
+pub trait ScreenBoundsCheck {
+    fn get_bounds(&self) -> (f32, f32, f32, f32);
+    fn get_path(&self) -> Path;
+    fn has_focus<T: Renderer>(
+        &self,
+        coords: (f32, f32),
+        highlight: Option<&mut Canvas<T>>,
+    ) -> bool {
+        let bounds = self.get_bounds();
+        let is_on_focus = (coords.0 >= bounds.0 && coords.0 <= bounds.0 + bounds.2)
+            && (coords.1 >= bounds.1 && coords.1 <= bounds.1 + bounds.3);
+
+        if is_on_focus && let Some(canvas) = highlight {
+            canvas.stroke_path(
+                &self.get_path(),
+                &Paint::color(femtovg::Color::rgb(255, 0, 0)).with_line_width(1.0),
+            );
+        }
+
+        is_on_focus
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct EditorScreenState {
     pub last_click_at: Cell<(f32, f32)>, // x,y
+    pub aside_files: RefCell<AsideContainerState>,
+    pub main_container: RefCell<MainContainerState>,
+    pub current_buffer: Cell<u32>,
+    pub opened_buffer_list: RefCell<Vec<FileBuffer>>,
+}
+
+#[derive(Debug, Default)]
+pub struct MainContainerState {
+    pub bounds: EditorLayoutBound,
+    pub path: Path,
+}
+
+impl ScreenBoundsCheck for MainContainerState {
+    fn get_bounds(&self) -> (f32, f32, f32, f32) {
+        self.bounds.clone()
+    }
+
+    fn get_path(&self) -> Path {
+        self.path.clone()
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Default)]
+pub struct AsideContainerState {
+    pub bounds: EditorLayoutBound,
+    pub path: Path,
+}
+
+impl ScreenBoundsCheck for AsideContainerState {
+    fn get_bounds(&self) -> (f32, f32, f32, f32) {
+        self.bounds.clone()
+    }
+
+    fn get_path(&self) -> Path {
+        self.path.clone()
+    }
 }
 
 #[derive(Debug)]
@@ -121,8 +174,8 @@ impl ApplicationState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),                //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),             //cx,cy - r
 }
 
 pub struct OrbPath {
