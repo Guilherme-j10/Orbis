@@ -3,7 +3,7 @@ use std::sync::{
     mpsc::{self},
 };
 
-use femtovg::{Canvas, Color, renderer::WGPURenderer};
+use femtovg::{Canvas, Color, Paint, Path, renderer::WGPURenderer};
 use winit::{
     application::ApplicationHandler,
     event::{DeviceEvent, DeviceId, WindowEvent},
@@ -227,4 +227,73 @@ pub fn start_wgpu(
     };
 
     event_loop.run_app(&mut app).unwrap();
+}
+
+pub fn render_svg(svg: usvg::Tree) -> Vec<(Path, Option<Paint>, Option<Paint>)> {
+    let mut paths = Vec::new();
+
+    fn collect_paths(
+        children: &[usvg::Node],
+        paths: &mut Vec<(Path, Option<Paint>, Option<Paint>)>,
+    ) {
+        use usvg::Node;
+        use usvg::tiny_skia_path::PathSegment;
+
+        for node in children {
+            match node {
+                Node::Group(group) => {
+                    collect_paths(group.children(), paths);
+                }
+                Node::Path(svg_path) => {
+                    let mut path = Path::new();
+
+                    for command in svg_path.data().segments() {
+                        match command {
+                            PathSegment::MoveTo(pt) => path.move_to(pt.x, pt.y),
+                            PathSegment::LineTo(pt) => path.line_to(pt.x, pt.y),
+                            PathSegment::CubicTo(pt1, pt2, pt) => {
+                                path.bezier_to(pt1.x, pt1.y, pt2.x, pt2.y, pt.x, pt.y)
+                            }
+                            PathSegment::QuadTo(pt1, pt) => path.quad_to(pt1.x, pt1.y, pt.x, pt.y),
+                            PathSegment::Close => path.close(),
+                        }
+                    }
+
+                    let to_femto_color = |usvg_paint: &usvg::Paint| match usvg_paint {
+                        usvg::Paint::Color(usvg::Color { red, green, blue }) => {
+                            Some(Color::rgb(*red, *green, *blue))
+                        }
+                        _ => None,
+                    };
+
+                    let fill = svg_path
+                        .fill()
+                        .and_then(|fill| to_femto_color(&fill.paint()))
+                        .map(|col| Paint::color(col).with_anti_alias(true));
+
+                    let stroke = svg_path.stroke().and_then(|stroke| {
+                        to_femto_color(&stroke.paint()).map(|paint| {
+                            let mut paint = Paint::color(paint)
+                                .with_line_width(stroke.width().get())
+                                .with_anti_alias(true);
+
+                            if let Some(dasharray) = stroke.dasharray() {
+                                paint.set_line_dash(dasharray);
+                                paint.set_line_dash_offset(stroke.dashoffset());
+                            }
+
+                            paint
+                        })
+                    });
+
+                    paths.push((path, fill, stroke))
+                }
+                _ => {}
+            }
+        }
+    }
+
+    collect_paths(svg.root().children(), &mut paths);
+
+    paths
 }
