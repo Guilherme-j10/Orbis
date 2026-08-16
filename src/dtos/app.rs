@@ -1,12 +1,8 @@
 use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    rc::Rc,
-    sync::{
+    cell::{Cell, RefCell}, collections::HashMap, path::PathBuf, rc::Rc, sync::{
         Arc,
         mpsc::{Receiver, Sender},
-    },
-    time::SystemTime,
+    }, time::SystemTime,
 };
 
 use directories::ProjectDirs;
@@ -50,7 +46,7 @@ pub struct InitialScreenState {
     pub font_mapping_verificate: Cell<bool>,
 }
 
-pub trait ScreenBoundsCheck {
+pub trait ScreenBoundsCheck { // rename to ElementFocusCheck
     fn get_bounds(&self) -> (f32, f32, f32, f32);
     fn get_path(&self) -> Path;
     fn has_focus<T: Renderer>(
@@ -78,6 +74,7 @@ pub struct EditorScreenState {
     pub last_click_at: Cell<(f32, f32)>, // x,y
     pub aside_files: RefCell<AsideContainerState>,
     pub main_container: RefCell<MainContainerState>,
+    pub current_folder: RefCell<PathBuf>,
     pub current_buffer: Cell<u32>,
     pub opened_buffer_list: RefCell<Vec<FileBuffer>>,
 }

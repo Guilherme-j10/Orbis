@@ -10,8 +10,7 @@ use std::{
 };
 
 use directories::ProjectDirs;
-use femtovg::{Canvas, Color, Renderer};
-use usvg::{Options, Tree};
+use femtovg::{Canvas, Color};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{
@@ -20,8 +19,10 @@ use crate::{
         InitialScreenState, MousePosition, OrbGliph, SendOrbInfo,
     },
     screens::controller::Controller,
-    utils::notification::NotificationRender,
-    wgpu::{Callbacks, WindowSurface, render_svg},
+    utils::{
+        notification::NotificationRender,
+    },
+    wgpu::{Callbacks, WindowSurface},
 };
 
 mod components;
@@ -90,7 +91,6 @@ fn run<W: WindowSurface + 'static>(
 
                 let mut notification = NotificationRender::new(&mut canvas, state.clone());
                 notification.render_loop();
-                draw_image_test(&mut canvas);
 
                 surface.present(&mut canvas);
             }
@@ -103,6 +103,12 @@ fn run<W: WindowSurface + 'static>(
                 *had_click = Some(mouse_state);
             }
             WindowEvent::KeyboardInput { event, .. } => {
+                if event.state.is_pressed() {
+                    if let Some(path) = rfd::FileDialog::new().set_directory("/").pick_folder() {
+                        println!("Selected folder: {:?}", path);
+                    }
+                }
+
                 key_event_channel
                     .0
                     .send_font(event, &*state.app_data.font_mapping.borrow());
@@ -119,27 +125,5 @@ fn run<W: WindowSurface + 'static>(
             _ => (),
         }),
         device_event: None,
-    }
-}
-
-pub fn draw_image_test<T: Renderer>(canvas: &mut Canvas<T>) -> () {
-    // reference: https://github.com/femtovg/femtovg/blob/master/examples/svg.rs
-
-    let svg_bytes: &[u8] = include_bytes!("../assets/file.svg");
-    let paths = render_svg(Tree::from_data(svg_bytes, &Options::default()).unwrap());
-
-    for (path, fill, stroke) in &paths {
-        if let Some(fill) = fill {
-            canvas.fill_path(path, fill);
-        }
-
-        if let Some(stroke) = stroke {
-            canvas.stroke_path(path, stroke);
-        }
-
-        // if canvas.contains_point(path, mousex, mousey, FillRule::NonZero) {
-        //     let paint = Paint::color(Color::rgb(32, 240, 32)).with_line_width(1.0);
-        //     canvas.stroke_path(path, &paint);
-        // }
     }
 }

@@ -3,7 +3,12 @@ use std::{f32::consts::PI, io::ErrorKind};
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 
 use crate::{
-    core::settings::Settings, dtos::app::{ApplicationScreens, ApplicationStateType, EditorScreenState, FontMappingState, InitialScreenState}, utils::notification::NotificationKind,
+    core::settings::Settings,
+    dtos::app::{
+        ApplicationScreens, ApplicationStateType, EditorScreenState, FontMappingState,
+        InitialScreenState,
+    },
+    utils::notification::NotificationKind,
 };
 
 pub struct InitialScreen<'a, T: Renderer> {

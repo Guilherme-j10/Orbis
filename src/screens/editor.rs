@@ -70,8 +70,13 @@ impl<'a, T: Renderer> Editor<'a, T> {
     }
 
     pub fn render(&mut self) -> Option<ApplicationScreens> {
+        self.handle_aside_files();
         self.handle_main_container();
         None
+    }
+
+    pub fn handle_aside_files(&self) -> () {
+        
     }
 
     pub fn handle_main_container(&self) -> () {
