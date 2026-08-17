@@ -19,9 +19,7 @@ use crate::{
         InitialScreenState, MousePosition, OrbGliph, SendOrbInfo,
     },
     screens::controller::Controller,
-    utils::{
-        notification::NotificationRender,
-    },
+    utils::notification::NotificationRender,
     wgpu::{Callbacks, WindowSurface},
 };
 

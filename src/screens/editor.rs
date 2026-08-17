@@ -1,9 +1,9 @@
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::keyboard::KeyCode;
 
-use crate::dtos::app::{
+use crate::{components::container::UIContianer, dtos::app::{
     ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
-};
+}};
 
 #[allow(dead_code)]
 pub struct Editor<'a, T: Renderer> {
@@ -75,8 +75,11 @@ impl<'a, T: Renderer> Editor<'a, T> {
         None
     }
 
-    pub fn handle_aside_files(&self) -> () {
-        
+    pub fn handle_aside_files(&mut self) -> () {
+        if self.screen_state.current_folder.borrow().is_none() {
+            // draw flow to get the current folder
+            return;
+        } 
     }
 
     pub fn handle_main_container(&self) -> () {

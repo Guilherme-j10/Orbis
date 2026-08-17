@@ -74,7 +74,7 @@ pub struct EditorScreenState {
     pub last_click_at: Cell<(f32, f32)>, // x,y
     pub aside_files: RefCell<AsideContainerState>,
     pub main_container: RefCell<MainContainerState>,
-    pub current_folder: RefCell<PathBuf>,
+    pub current_folder: RefCell<Option<PathBuf>>,
     pub current_buffer: Cell<u32>,
     pub opened_buffer_list: RefCell<Vec<FileBuffer>>,
 }
