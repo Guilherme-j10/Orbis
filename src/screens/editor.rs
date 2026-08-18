@@ -1,9 +1,12 @@
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::keyboard::KeyCode;
 
-use crate::{components::container::UIContianer, dtos::app::{
-    ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
-}};
+use crate::{
+    components::circle::{CircleStyle, UICircleContainer},
+    dtos::app::{
+        ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
+    },
+};
 
 #[allow(dead_code)]
 pub struct Editor<'a, T: Renderer> {
@@ -77,9 +80,22 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
     pub fn handle_aside_files(&mut self) -> () {
         if self.screen_state.current_folder.borrow().is_none() {
-            // draw flow to get the current folder
+            let container = self.screen_state.aside_files.borrow().bounds;
+
+            let mut circle = UICircleContainer::new(
+                self.app_state.clone(),
+                self.canvas,
+                vec![
+                    CircleStyle::Background(Color::rgb(255, 0, 0)),
+                    CircleStyle::AlignCenter(Some((container.1, container.3))),
+                    CircleStyle::JustifyCenter(Some((container.0, container.2))),
+                    CircleStyle::Radius(25.0),
+                ],
+            );
+
+            circle.draw();
             return;
-        } 
+        }
     }
 
     pub fn handle_main_container(&self) -> () {
