@@ -86,7 +86,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
                 self.app_state.clone(),
                 self.canvas,
                 vec![
-                    CircleStyle::Background(Color::rgb(255, 0, 0)),
+                    CircleStyle::Background(Color::rgb(43, 44, 54)),
                     CircleStyle::AlignCenter(Some((container.1, container.3))),
                     CircleStyle::JustifyCenter(Some((container.0, container.2))),
                     CircleStyle::Radius(25.0),
