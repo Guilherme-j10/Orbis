@@ -4,7 +4,7 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::dpi::PhysicalSize;
 
 use crate::{
-    components::button::{StyleProp, UIButton},
+    components::button::UIButton,
     core::settings::Settings,
     dtos::app::{
         ApplicationScreens, ApplicationStateType, EditorScreenState, FontMappingState,
@@ -15,7 +15,7 @@ use crate::{
         font::FontPadding,
         font_mask::{FontMask, FontMaskProp},
     },
-    utils::notification::NotificationKind,
+    utils::{notification::NotificationKind, style::UIStyle},
 };
 
 pub struct FontEditorScreen<'a, T: Renderer> {
@@ -123,14 +123,14 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                 self.canvas,
                 "Save font mapping",
                 vec![
-                    StyleProp::JustifyCenter(None),
-                    StyleProp::AlignCenter(None),
-                    StyleProp::Padding(20.0, 10.0),
-                    StyleProp::Background(Color::rgb(32, 32, 42)),
-                    StyleProp::MarginTop(120.0),
-                    StyleProp::TextColor(Color::rgb(255, 255, 255)),
-                    StyleProp::TextSize(15.0),
-                    StyleProp::Font(vec![
+                    UIStyle::JustifyCenter(None),
+                    UIStyle::AlignCenter(None),
+                    UIStyle::Padding(20.0, 10.0),
+                    UIStyle::Background(Color::rgb(32, 32, 42)),
+                    UIStyle::MarginTop(120.0),
+                    UIStyle::TextColor(Color::rgb(255, 255, 255)),
+                    UIStyle::TextSize(15.0),
+                    UIStyle::Font(vec![
                         self.app_state
                             .app_data
                             .font_ids

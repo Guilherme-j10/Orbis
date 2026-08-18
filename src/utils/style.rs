@@ -1,0 +1,66 @@
+use femtovg::{Color, FontId};
+
+#[derive(Clone)]
+pub enum UIStyle {
+    JustifyCenter(Option<(f32, f32)>),   // x, w
+    AlignCenter(Option<(f32, f32)>),     // y, h
+    MarginTop(f32),
+    Padding(f32, f32),                   // horizontal, vertical
+    Background(Color),
+    TextColor(Color),
+    TextSize(f32),
+    Font(Vec<FontId>),
+    Radius(f32),
+}
+
+#[derive(Default)]
+pub struct ComputedStyle {
+    pub position: (f32, f32),
+    pub justify: Option<(f32, f32)>,
+    pub align: Option<(f32, f32)>,
+    pub margin_top: f32,
+    pub padding: (f32, f32),
+    pub background: Color,
+    pub text_color: Color,
+    pub radius: f32,
+    pub text_size: f32,
+    pub fonts: Vec<FontId>,
+}
+
+impl From<&Vec<UIStyle>> for ComputedStyle {
+    fn from(value: &Vec<UIStyle>) -> Self {
+        let mut computed = ComputedStyle::default();
+        for style in value {
+            match style {
+                UIStyle::Radius(val) => {
+                    computed.radius = *val;
+                }
+                UIStyle::Padding( horizontal, vertical) => {
+                    computed.padding = (*horizontal, *vertical);
+                }
+                UIStyle::MarginTop(val) => {
+                    computed.margin_top = *val;
+                }
+                UIStyle::Background(color) => {
+                    computed.background = *color;
+                }
+                UIStyle::AlignCenter(val) => {
+                    computed.align = *val;
+                }
+                UIStyle::JustifyCenter(val) => {
+                    computed.justify = *val;
+                }
+                UIStyle::TextColor(color) => {
+                    computed.text_color = *color;
+                }
+                UIStyle::TextSize(size) => {
+                    computed.text_size = *size;
+                }
+                UIStyle::Font(font_ids) => {
+                    computed.fonts = font_ids.clone();
+                }
+            }
+        }
+        computed
+    }
+}

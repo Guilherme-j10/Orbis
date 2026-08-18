@@ -2,10 +2,10 @@ use femtovg::{Canvas, Color, Paint, Path, Renderer};
 use winit::keyboard::KeyCode;
 
 use crate::{
-    components::circle::{CircleStyle, UICircleContainer},
+    components::{button::UIButton, circle::UICircleContainer},
     dtos::app::{
         ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
-    },
+    }, utils::style::UIStyle,
 };
 
 #[allow(dead_code)]
@@ -86,12 +86,21 @@ impl<'a, T: Renderer> Editor<'a, T> {
                 self.app_state.clone(),
                 self.canvas,
                 vec![
-                    CircleStyle::Background(Color::rgb(43, 44, 54)),
-                    CircleStyle::AlignCenter(Some((container.1, container.3))),
-                    CircleStyle::JustifyCenter(Some((container.0, container.2))),
-                    CircleStyle::Radius(25.0),
+                    UIStyle::Background(Color::rgb(43, 44, 54)),
+                    UIStyle::AlignCenter(Some((container.1, container.3))),
+                    UIStyle::JustifyCenter(Some((container.0, container.2))),
+                    UIStyle::Radius(25.0),
                 ],
             );
+
+            // let mut button = UIButton::new(
+            //     self.app_state.clone(),
+            //     self.canvas,
+            //     "Select folder",
+            //     vec![
+
+            //     ]
+            // )
 
             circle.draw();
             return;

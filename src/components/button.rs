@@ -1,37 +1,13 @@
-use femtovg::{Align, Baseline, Canvas, Color, FontId, Paint, Path, Renderer};
+use femtovg::{Align, Baseline, Canvas, Paint, Path, Renderer};
 use winit::window::CursorIcon;
 
-use crate::dtos::app::ApplicationStateType;
-
-pub enum StyleProp {
-    JustifyCenter(Option<(f32, f32)>),   // x, w
-    AlignCenter(Option<(f32, f32)>),     // y, h
-    //Fixed(f32, f32),                   // x, y
-    MarginTop(f32),
-    Padding(f32, f32),                   // horizontal, vertical
-    Background(Color),
-    TextColor(Color),
-    TextSize(f32),
-    Font(Vec<FontId>),
-}
-
-struct ComputedStyle {
-    position: (f32, f32),
-    justify: Option<(f32, f32)>,
-    align: Option<(f32, f32)>,
-    margin_top: f32,
-    padding: (f32, f32),
-    background: Color,
-    text_color: Color,
-    text_size: f32,
-    fonts: Vec<FontId>,
-}
+use crate::{dtos::app::ApplicationStateType, utils::style::{ComputedStyle, UIStyle}};
 
 pub struct UIButton<'a, T: Renderer> {
     pub app_state: ApplicationStateType,
     pub canvas: &'a mut Canvas<T>,
     pub text: &'static str,
-    pub style: Vec<StyleProp>,
+    pub style: Vec<UIStyle>,
     path: Path,
     on_click: Option<Box<dyn Fn() -> () + 'a>>,
 }
@@ -41,7 +17,7 @@ impl<'a, T: Renderer> UIButton<'a, T> {
         app_state: ApplicationStateType,
         canvas: &'a mut Canvas<T>,
         text: &'static str,
-        style: Vec<StyleProp>,
+        style: Vec<UIStyle>,
         on_click: Option<Box<dyn Fn() -> () + 'a>>,
     ) -> Self {
         Self {
@@ -55,7 +31,7 @@ impl<'a, T: Renderer> UIButton<'a, T> {
     }
 
     pub fn draw(&mut self) -> () {
-        let style = self.computed_style();
+        let style = ComputedStyle::from(&self.style);
 
         let text_paint = Paint::color(style.text_color)
             .with_font(&style.fonts)
@@ -120,50 +96,5 @@ impl<'a, T: Renderer> UIButton<'a, T> {
                 callback();
             }
         }
-    }
-
-    fn computed_style(&self) -> ComputedStyle {
-        let mut computed = ComputedStyle {
-            position: (0.0, 0.0),
-            justify: None,
-            align: None,
-            margin_top: 0.0,
-            padding: (16.0, 8.0),
-            background: Color::rgb(35, 35, 48),
-            text_color: Color::rgb(220, 220, 235),
-            text_size: 16.0,
-            fonts: vec![],
-        };
-
-        for style in &self.style {
-            match style {
-                StyleProp::JustifyCenter(region) => {
-                    computed.justify = Some(region.unwrap_or((0.0, self.canvas.width() as f32)));
-                }
-                StyleProp::AlignCenter(region) => {
-                    computed.align = Some(region.unwrap_or((0.0, self.canvas.height() as f32)));
-                }
-                StyleProp::MarginTop(margin) => {
-                    computed.margin_top = *margin;
-                }
-                StyleProp::Padding(horizontal, vertical) => {
-                    computed.padding = (*horizontal, *vertical);
-                }
-                StyleProp::Background(color) => {
-                    computed.background = *color;
-                }
-                StyleProp::TextColor(color) => {
-                    computed.text_color = *color;
-                }
-                StyleProp::TextSize(size) => {
-                    computed.text_size = *size;
-                }
-                StyleProp::Font(font_ids) => {
-                    computed.fonts = font_ids.clone();
-                }
-            }
-        }
-
-        computed
     }
 }
