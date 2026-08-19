@@ -3,26 +3,23 @@ use femtovg::{Canvas, Paint, Path, Renderer};
 use crate::{dtos::app::ApplicationStateType, utils::style::{ComputedStyle, UIStyle}};
 
 #[allow(dead_code)]
-pub struct UICircleContainer<'a, T: Renderer> {
+pub struct UICircleContainer {
     pub app_state: ApplicationStateType,
-    pub canvas: &'a mut Canvas<T>,
     pub style: Vec<UIStyle>,
 }
 
-impl<'a, T: Renderer> UICircleContainer<'a, T> {
+impl UICircleContainer {
     pub fn new(
         state: ApplicationStateType,
-        canvas: &'a mut Canvas<T>,
         style: Vec<UIStyle>,
     ) -> Self {
         Self {
             style,
-            canvas,
             app_state: state,
         }
     }
 
-    pub fn draw(&mut self) -> () {
+    pub fn draw<T: Renderer>(&mut self, canvas: &mut Canvas<T>) -> () {
         let style = ComputedStyle::from(&self.style);
 
         let mut path = Path::new();
@@ -38,6 +35,6 @@ impl<'a, T: Renderer> UICircleContainer<'a, T> {
         }
 
         path.circle(x, y, style.radius);
-        self.canvas.fill_path(&path, &Paint::color(style.background));
+        canvas.fill_path(&path, &Paint::color(style.background));
     }
 }

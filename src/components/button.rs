@@ -3,26 +3,23 @@ use winit::window::CursorIcon;
 
 use crate::{dtos::app::ApplicationStateType, utils::style::{ComputedStyle, UIStyle}};
 
-pub struct UIButton<'a, T: Renderer> {
+pub struct UIButton<'a> {
     pub app_state: ApplicationStateType,
-    pub canvas: &'a mut Canvas<T>,
     pub text: &'static str,
     pub style: Vec<UIStyle>,
     path: Path,
     on_click: Option<Box<dyn Fn() -> () + 'a>>,
 }
 
-impl<'a, T: Renderer> UIButton<'a, T> {
+impl<'a> UIButton<'a>{
     pub fn new(
         app_state: ApplicationStateType,
-        canvas: &'a mut Canvas<T>,
         text: &'static str,
         style: Vec<UIStyle>,
         on_click: Option<Box<dyn Fn() -> () + 'a>>,
     ) -> Self {
         Self {
             app_state,
-            canvas,
             style,
             text,
             path: Path::new(),
@@ -30,7 +27,7 @@ impl<'a, T: Renderer> UIButton<'a, T> {
         }
     }
 
-    pub fn draw(&mut self) -> () {
+    pub fn draw<T: Renderer>(&mut self, canvas: &mut Canvas<T>) -> () {
         let style = ComputedStyle::from(&self.style);
 
         let text_paint = Paint::color(style.text_color)
@@ -41,8 +38,7 @@ impl<'a, T: Renderer> UIButton<'a, T> {
             .with_text_align(Align::Center)
             .with_text_baseline(Baseline::Middle);
 
-        let text_width = self
-            .canvas
+        let text_width = canvas
             .measure_text(0.0, 0.0, self.text, &text_paint)
             .expect("Failed to measure button text")
             .width();
@@ -75,9 +71,9 @@ impl<'a, T: Renderer> UIButton<'a, T> {
 
         self.path.rect(x, y, width, height);
 
-        self.canvas
+        canvas
             .fill_path(&self.path, &Paint::color(style.background));
-        self.canvas
+        canvas
             .fill_text(x + width / 2.0, y + height / 2.0, self.text, &text_paint)
             .expect("Failed to fill button text");
     }

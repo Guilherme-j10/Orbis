@@ -5,7 +5,12 @@ use crate::{
     components::{button::UIButton, circle::UICircleContainer},
     dtos::app::{
         ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
-    }, utils::style::UIStyle,
+    },
+    utils::{
+        constants::FOLDER_CLOSE_ICON,
+        style::UIStyle,
+        svg::{CustomSize, Position, draw_svg},
+    },
 };
 
 #[allow(dead_code)]
@@ -84,7 +89,6 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
             let mut circle = UICircleContainer::new(
                 self.app_state.clone(),
-                self.canvas,
                 vec![
                     UIStyle::Background(Color::rgb(43, 44, 54)),
                     UIStyle::AlignCenter(Some((container.1, container.3))),
@@ -93,16 +97,52 @@ impl<'a, T: Renderer> Editor<'a, T> {
                 ],
             );
 
-            // let mut button = UIButton::new(
-            //     self.app_state.clone(),
-            //     self.canvas,
-            //     "Select folder",
-            //     vec![
+            let mut button = UIButton::new(
+                self.app_state.clone(),
+                "Select folder",
+                vec![
+                    UIStyle::AlignCenter(Some((container.1, container.3))),
+                    UIStyle::JustifyCenter(Some((container.0, container.2))),
+                    UIStyle::Padding(20.0, 10.0),
+                    UIStyle::Background(Color::rgb(62, 63, 74)),
+                    UIStyle::MarginTop(60.0),
+                    UIStyle::TextColor(Color::rgb(255, 255, 255)),
+                    UIStyle::TextSize(15.0),
+                    UIStyle::Font(vec![
+                        self.app_state
+                            .app_data
+                            .font_ids
+                            .borrow()
+                            .first()
+                            .unwrap()
+                            .clone(),
+                    ]),
+                ],
+                Some(Box::new(|| {
+                    if let Some(path) = rfd::FileDialog::new().set_directory("/").pick_folder() {
+                        *self.screen_state.current_folder.borrow_mut() = Some(path);
+                    }
+                })),
+            );
 
-            //     ]
-            // )
+            circle.draw(self.canvas);
+            button.draw(self.canvas);
 
-            circle.draw();
+            let svg_icon_size = CustomSize {
+                scale_x: 20.0,
+                scale_y: 20.0,
+            };
+
+            draw_svg(
+                self.canvas,
+                FOLDER_CLOSE_ICON,
+                Position {
+                    x: container.0 + container.2 / 2.0 - (svg_icon_size.scale_x / 2.0),
+                    y: container.1 + container.3 / 2.0 - (svg_icon_size.scale_y / 2.0),
+                },
+                Some(Color::rgb(255, 255, 255)),
+                Some(svg_icon_size),
+            );
             return;
         }
     }

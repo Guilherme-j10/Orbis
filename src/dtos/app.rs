@@ -1,8 +1,13 @@
 use std::{
-    cell::{Cell, RefCell}, collections::HashMap, path::PathBuf, rc::Rc, sync::{
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    path::PathBuf,
+    rc::Rc,
+    sync::{
         Arc,
         mpsc::{Receiver, Sender},
-    }, time::SystemTime,
+    },
+    time::SystemTime,
 };
 
 use directories::ProjectDirs;
@@ -46,7 +51,8 @@ pub struct InitialScreenState {
     pub font_mapping_verificate: Cell<bool>,
 }
 
-pub trait ScreenBoundsCheck { // rename to ElementFocusCheck
+pub trait ScreenBoundsCheck {
+    // rename to ElementFocusCheck
     fn get_bounds(&self) -> (f32, f32, f32, f32);
     fn get_path(&self) -> Path;
     fn has_focus<T: Renderer>(
@@ -154,11 +160,21 @@ impl ApplicationState {
         *self.current_screen.borrow_mut() = screen;
     }
 
+    pub fn set_had_click(&self, new_state: ElementState) -> () {
+        let mut current_state = self.hardware.hit_click.borrow_mut();
+        if let Some(state) = *current_state {
+            if new_state != state {
+                *current_state = Some(new_state);
+            }
+        } else {
+            *current_state = Some(new_state)
+        }
+    }
+
     pub fn had_click(&self) -> bool {
-        let mut had_click = self.hardware.hit_click.borrow_mut();
+        let had_click = self.hardware.hit_click.borrow();
         if let Some(element_state) = *had_click {
             if element_state == ElementState::Pressed {
-                *had_click = None;
                 return true;
             }
         }

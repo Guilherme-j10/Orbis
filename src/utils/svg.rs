@@ -8,17 +8,19 @@ pub struct CustomSize {
 
 pub struct Position {
     pub x: f32,
-    pub y: f32
-} 
+    pub y: f32,
+}
 
-pub fn draw_image_test<T: Renderer>(canvas: &mut Canvas<T>, pos: Position, color: Option<Color>) -> () {
-    let svg_bytes: &[u8] = include_bytes!("../../assets/file.svg");
+pub fn draw_svg<T: Renderer>(
+    canvas: &mut Canvas<T>,
+    icon: &[u8],
+    pos: Position,
+    color: Option<Color>,
+    size: Option<CustomSize>,
+) -> () {
     let mut paths = render_svg(
-        Tree::from_data(svg_bytes, &Options::default()).unwrap(),
-        Some(CustomSize {
-            scale_x: 15.0,
-            scale_y: 15.0,
-        }),
+        Tree::from_data(icon, &Options::default()).unwrap(),
+        size,
     );
 
     canvas.save();
@@ -41,7 +43,7 @@ pub fn draw_image_test<T: Renderer>(canvas: &mut Canvas<T>, pos: Position, color
             canvas.stroke_path(path, stroke);
         }
     }
-    
+
     canvas.restore();
 }
 

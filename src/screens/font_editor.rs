@@ -120,7 +120,6 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
 
             let mut button = UIButton::new(
                 self.app_state.clone(),
-                self.canvas,
                 "Save font mapping",
                 vec![
                     UIStyle::JustifyCenter(None),
@@ -157,7 +156,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                 })),
             );
 
-            button.draw();
+            button.draw(self.canvas);
         }
 
         if font_mapping_file_was_save.get() == true {

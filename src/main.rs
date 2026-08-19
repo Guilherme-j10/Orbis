@@ -97,16 +97,9 @@ fn run<W: WindowSurface + 'static>(
                 state: mouse_state,
                 button: _,
             } => {
-                let mut had_click = state.hardware.hit_click.borrow_mut();
-                *had_click = Some(mouse_state);
+                state.set_had_click(mouse_state);
             }
             WindowEvent::KeyboardInput { event, .. } => {
-                if event.state.is_pressed() {
-                    if let Some(path) = rfd::FileDialog::new().set_directory("/").pick_folder() {
-                        println!("Selected folder: {:?}", path);
-                    }
-                }
-
                 key_event_channel
                     .0
                     .send_font(event, &*state.app_data.font_mapping.borrow());
