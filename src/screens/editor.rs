@@ -1,4 +1,5 @@
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
+use walkdir::WalkDir;
 use winit::keyboard::KeyCode;
 
 use crate::{
@@ -144,6 +145,13 @@ impl<'a, T: Renderer> Editor<'a, T> {
                 Some(svg_icon_size),
             );
             return;
+        }
+
+        let current_folder = self.screen_state.current_folder.borrow();
+        let root_path = current_folder.as_ref().unwrap();
+        for entry in WalkDir::new(root_path.as_path()) {
+            let entry = entry.unwrap();
+            println!("{}", entry.path().display());
         }
     }
 
