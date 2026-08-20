@@ -1,5 +1,5 @@
 use femtovg::{Canvas, Color, Paint, Path, Renderer};
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 use winit::keyboard::KeyCode;
 
 use crate::{
@@ -85,7 +85,9 @@ impl<'a, T: Renderer> Editor<'a, T> {
     }
 
     pub fn handle_aside_files(&mut self) -> () {
-        if self.screen_state.current_folder.borrow().is_none() {
+        let root_project_folder = self.screen_state.current_folder.borrow(); 
+
+        if root_project_folder.is_none() {
             let container = self.screen_state.aside_files.borrow().bounds;
 
             let mut circle = UICircleContainer::new(
@@ -147,9 +149,20 @@ impl<'a, T: Renderer> Editor<'a, T> {
             return;
         }
 
-        let current_folder = self.screen_state.current_folder.borrow();
-        let root_path = current_folder.as_ref().unwrap();
-        for entry in WalkDir::new(root_path.as_path()) {
+        let root_folder_pathbuf = root_project_folder.as_ref().unwrap();
+
+        fn is_hidden(entry: &DirEntry) -> bool {
+            entry
+                .file_name()
+                .to_str()
+                .map(|s| s.starts_with("."))
+                .unwrap_or(false)
+        }
+
+        for entry in WalkDir::new(root_folder_pathbuf.as_path())
+            .into_iter()
+            .filter_entry(|e| !is_hidden(e))
+        {
             let entry = entry.unwrap();
             println!("{}", entry.path().display());
         }
