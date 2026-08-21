@@ -80,19 +80,17 @@ pub struct EditorScreenState {
     pub last_click_at: Cell<(f32, f32)>, // x,y
     pub aside_files: RefCell<AsideContainerState>,
     pub main_container: RefCell<MainContainerState>,
-    // pub selected_folder: RefCell<RootFolderSelected>,
-    pub handle_hidden_files: Cell<bool>,
-    pub current_folder: RefCell<Option<PathBuf>>,
+    pub root_folder: RefCell<RootFolder>,
     pub current_buffer: Cell<u32>,
     pub opened_buffer_list: RefCell<Vec<FileBuffer>>,
 }
 
-// #[derive(Debug, Default)]
-// pub struct RootFolderSelected {
-//     pub current_folder: PathBuf,
-//     pub handle_hidden_files: bool,
-//     pub cache_current_folder: Vec<Path>
-// }
+#[derive(Debug, Default)]
+pub struct RootFolder {
+    pub current_folder: Option<PathBuf>,
+    pub handle_hidden_files: bool,
+    pub folder_structure_cache: Vec<walkdir::DirEntry>
+}
 
 #[derive(Debug, Default)]
 pub struct MainContainerState {

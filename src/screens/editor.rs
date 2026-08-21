@@ -1,9 +1,9 @@
-use femtovg::{Canvas, Color, Paint, Path, Renderer};
+use femtovg::{Align, Canvas, Color, Paint, Path, Renderer};
 use walkdir::{DirEntry, WalkDir};
 use winit::keyboard::KeyCode;
 
 use crate::{
-    components::{button::UIButton, circle::UICircleContainer},
+    components::{button::UIButton, circle::UICircleContainer, text::UIText},
     dtos::app::{
         ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
     },
@@ -71,7 +71,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
         main.bounds = bounds_main_container;
         main.path = main_container_path;
 
-        screen_state.handle_hidden_files.set(true);
+        screen_state.root_folder.borrow_mut().handle_hidden_files = false;
 
         Self {
             canvas,
@@ -87,7 +87,13 @@ impl<'a, T: Renderer> Editor<'a, T> {
     }
 
     pub fn handle_aside_files(&mut self) -> () {
-        if self.screen_state.current_folder.borrow().is_none() {
+        if self
+            .screen_state
+            .root_folder
+            .borrow()
+            .current_folder
+            .is_none()
+        {
             let container = self.screen_state.aside_files.borrow().bounds;
 
             let mut circle = UICircleContainer::new(
@@ -123,7 +129,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
                 ],
                 Some(Box::new(|| {
                     if let Some(path) = rfd::FileDialog::new().set_directory("/").pick_folder() {
-                        *self.screen_state.current_folder.borrow_mut() = Some(path);
+                        self.screen_state.root_folder.borrow_mut().current_folder = Some(path);
                     }
                 })),
             );
@@ -149,33 +155,70 @@ impl<'a, T: Renderer> Editor<'a, T> {
             return;
         }
 
-        let current_folder = self.screen_state.current_folder.borrow();
-        let root_folder_pathbuf = current_folder.as_ref().unwrap();
+        let mut root_folder = self.screen_state.root_folder.borrow_mut();
 
-        fn is_hidden(entry: &DirEntry) -> bool {
-            entry
-                .file_name()
-                .to_str()
-                .map(|s| s.starts_with("."))
-                .unwrap_or(false)
-        }
+        if root_folder.folder_structure_cache.len() == 0 {
+            let root_folder_pathbuf = root_folder.current_folder.as_ref().unwrap();
 
-        let entries = || -> Box<dyn Iterator<Item = walkdir::Result<DirEntry>>> {
-            if self.screen_state.handle_hidden_files.get() {
-                return Box::new(
-                    WalkDir::new(root_folder_pathbuf.as_path())
-                        .into_iter()
-                        .filter_entry(|e| is_hidden(e) == false),
-                );
+            fn is_hidden(entry: &DirEntry) -> bool {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|s| s.starts_with("."))
+                    .unwrap_or(false)
             }
 
-            return Box::new(WalkDir::new(root_folder_pathbuf.as_path()).into_iter());
-        }();
+            let entries = || -> Box<dyn Iterator<Item = walkdir::Result<DirEntry>>> {
+                if root_folder.handle_hidden_files {
+                    return Box::new(
+                        WalkDir::new(root_folder_pathbuf.as_path())
+                            .into_iter()
+                            .filter_entry(|e| is_hidden(e) == false),
+                    );
+                }
 
-        for entry in entries {
-            let entry = entry.unwrap();
-            println!("{}", entry.path().display());
+                return Box::new(WalkDir::new(root_folder_pathbuf.as_path()).into_iter());
+            }();
+
+            for entry in entries {
+                match entry {
+                    Ok(dir) => {
+                        if dir.depth() == 1 {
+                            root_folder.folder_structure_cache.push(dir);
+                        }
+                    }
+                    Err(er) => println!("error in waldir: {er}"),
+                }
+            }
         }
+
+        let container = self.screen_state.aside_files.borrow().bounds;
+
+        let text = UIText::new(
+            root_folder
+                .current_folder
+                .as_ref()
+                .and_then(|f| f.file_name())
+                .and_then(|f| Some(f.to_string_lossy()))
+                .map(String::from)
+                .unwrap()
+                .to_uppercase(),
+            vec![
+                UIStyle::TextAlign(Some(Align::Left)),
+                UIStyle::BoundsSize(Some(container)),
+                UIStyle::Font(self.app_state.app_data.font_ids.borrow().clone()),
+                UIStyle::TextColor(Color::rgb(155, 160, 174)),
+                UIStyle::TextSize(15.0),
+                UIStyle::Padding(10.0, 0.0),
+            ],
+        );
+
+        text.draw(self.canvas);
+
+        for cpath in &root_folder.folder_structure_cache {
+
+        }
+        // draw folder name
     }
 
     pub fn handle_main_container(&self) -> () {
