@@ -71,6 +71,8 @@ impl<'a, T: Renderer> Editor<'a, T> {
         main.bounds = bounds_main_container;
         main.path = main_container_path;
 
+        screen_state.handle_hidden_files.set(true);
+
         Self {
             canvas,
             app_state,
@@ -85,9 +87,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
     }
 
     pub fn handle_aside_files(&mut self) -> () {
-        let root_project_folder = self.screen_state.current_folder.borrow(); 
-
-        if root_project_folder.is_none() {
+        if self.screen_state.current_folder.borrow().is_none() {
             let container = self.screen_state.aside_files.borrow().bounds;
 
             let mut circle = UICircleContainer::new(
@@ -149,7 +149,8 @@ impl<'a, T: Renderer> Editor<'a, T> {
             return;
         }
 
-        let root_folder_pathbuf = root_project_folder.as_ref().unwrap();
+        let current_folder = self.screen_state.current_folder.borrow();
+        let root_folder_pathbuf = current_folder.as_ref().unwrap();
 
         fn is_hidden(entry: &DirEntry) -> bool {
             entry
@@ -159,10 +160,19 @@ impl<'a, T: Renderer> Editor<'a, T> {
                 .unwrap_or(false)
         }
 
-        for entry in WalkDir::new(root_folder_pathbuf.as_path())
-            .into_iter()
-            .filter_entry(|e| !is_hidden(e))
-        {
+        let entries = || -> Box<dyn Iterator<Item = walkdir::Result<DirEntry>>> {
+            if self.screen_state.handle_hidden_files.get() {
+                return Box::new(
+                    WalkDir::new(root_folder_pathbuf.as_path())
+                        .into_iter()
+                        .filter_entry(|e| is_hidden(e) == false),
+                );
+            }
+
+            return Box::new(WalkDir::new(root_folder_pathbuf.as_path()).into_iter());
+        }();
+
+        for entry in entries {
             let entry = entry.unwrap();
             println!("{}", entry.path().display());
         }
