@@ -5,7 +5,7 @@ use crate::{dtos::app::ApplicationStateType, utils::style::{ComputedStyle, UISty
 
 pub struct UIButton<'a> {
     pub app_state: ApplicationStateType,
-    pub text: &'static str,
+    pub text: &'a str,
     pub style: Vec<UIStyle>,
     path: Path,
     on_click: Option<Box<dyn Fn() -> () + 'a>>,
@@ -14,7 +14,7 @@ pub struct UIButton<'a> {
 impl<'a> UIButton<'a>{
     pub fn new(
         app_state: ApplicationStateType,
-        text: &'static str,
+        text: &'a str,
         style: Vec<UIStyle>,
         on_click: Option<Box<dyn Fn() -> () + 'a>>,
     ) -> Self {

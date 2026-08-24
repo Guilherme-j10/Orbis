@@ -3,11 +3,9 @@ use walkdir::{DirEntry, WalkDir};
 use winit::keyboard::KeyCode;
 
 use crate::{
-    components::{button::UIButton, circle::UICircleContainer, text::UIText},
-    dtos::app::{
+    components::{button::UIButton, circle::UICircleContainer, path_line::UIPathLine, text::UIText}, dtos::app::{
         ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
-    },
-    utils::{
+    }, utils::{
         constants::FOLDER_CLOSE_ICON,
         style::UIStyle,
         svg::{CustomSize, Position, draw_svg},
@@ -183,9 +181,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
             for entry in entries {
                 match entry {
                     Ok(dir) => {
-                        if dir.depth() == 1 {
-                            root_folder.folder_structure_cache.push(dir);
-                        }
+                        root_folder.folder_structure_cache.push(dir);
                     }
                     Err(er) => println!("error in waldir: {er}"),
                 }
@@ -216,9 +212,16 @@ impl<'a, T: Renderer> Editor<'a, T> {
         text.draw(self.canvas);
 
         for cpath in &root_folder.folder_structure_cache {
-
+            if cpath.depth() == 1 {
+                let path_line = UIPathLine::new(
+                    cpath,
+                    self.app_state.clone(),
+                    self.screen_state,
+                    1
+                );
+                path_line.draw(self.canvas); 
+            }
         }
-        // draw folder name
     }
 
     pub fn handle_main_container(&self) -> () {
