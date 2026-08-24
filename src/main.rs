@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Cell, RefCell},
     collections::HashMap,
     path::PathBuf,
     rc::Rc,
@@ -49,6 +49,7 @@ fn run<W: WindowSurface + 'static>(
         },
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
+            last_cursor_icon: Cell::default(),
             font_mapping: RefCell::new(HashMap::default()),
             receiver_key_event: key_event_channel.1.unwrap(),
             project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")

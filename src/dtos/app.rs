@@ -15,10 +15,11 @@ use femtovg::{Canvas, FontId, Paint, Path, Renderer};
 use winit::{
     event::{ElementState, KeyEvent},
     keyboard::{KeyCode, PhysicalKey},
-    window::Window,
+    window::{Cursor, CursorIcon, Window},
 };
 
 use crate::{
+    components::path_line::UIPathLine,
     core::buffer::FileBuffer,
     font_engine::font::{FontFillKind, OrbParts},
     utils::notification::{Notification, NotificationKind},
@@ -88,8 +89,8 @@ pub struct EditorScreenState {
 #[derive(Debug, Default)]
 pub struct RootFolder {
     pub current_folder: Option<PathBuf>,
-    pub handle_hidden_files: bool,
-    pub folder_structure_cache: Vec<walkdir::DirEntry>
+    pub show_hidden_files: bool,
+    pub folder_structure_cache: Vec<walkdir::DirEntry>,
 }
 
 #[derive(Debug, Default)]
@@ -140,6 +141,7 @@ pub struct HardwareState {
 
 #[derive(Debug)]
 pub struct ApplicationSettingsData {
+    pub last_cursor_icon: Cell<CursorIcon>,
     pub font_ids: RefCell<Vec<FontId>>,
     pub font_mapping: RefCell<MappedFont>,
     pub project_dirs: ProjectDirs,
@@ -156,6 +158,13 @@ pub struct ApplicationState {
 }
 
 impl ApplicationState {
+    pub fn change_cursor_icon(&self, request: CursorIcon) -> () {
+        if request != self.app_data.last_cursor_icon.get() {
+            self.window.set_cursor(request);
+            self.app_data.last_cursor_icon.set(request);
+        }
+    }
+
     pub fn push_notification(&self, kind: NotificationKind) -> () {
         self.notification_timers.borrow_mut().push(Notification {
             kind,

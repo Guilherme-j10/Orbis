@@ -3,9 +3,13 @@ use walkdir::{DirEntry, WalkDir};
 use winit::keyboard::KeyCode;
 
 use crate::{
-    components::{button::UIButton, circle::UICircleContainer, path_line::UIPathLine, text::UIText}, dtos::app::{
+    components::{
+        button::UIButton, circle::UICircleContainer, path_line::UIPathLine, text::UIText,
+    },
+    dtos::app::{
         ApplicationScreens, ApplicationStateType, EditorScreenState, OrbKeyEvent, ScreenBoundsCheck,
-    }, utils::{
+    },
+    utils::{
         constants::FOLDER_CLOSE_ICON,
         style::UIStyle,
         svg::{CustomSize, Position, draw_svg},
@@ -68,8 +72,6 @@ impl<'a, T: Renderer> Editor<'a, T> {
         let mut main = screen_state.main_container.borrow_mut();
         main.bounds = bounds_main_container;
         main.path = main_container_path;
-
-        screen_state.root_folder.borrow_mut().handle_hidden_files = false;
 
         Self {
             canvas,
@@ -167,9 +169,11 @@ impl<'a, T: Renderer> Editor<'a, T> {
             }
 
             let entries = || -> Box<dyn Iterator<Item = walkdir::Result<DirEntry>>> {
-                if root_folder.handle_hidden_files {
+                if root_folder.show_hidden_files == false {
                     return Box::new(
                         WalkDir::new(root_folder_pathbuf.as_path())
+                            .min_depth(1)
+                            .max_depth(1)
                             .into_iter()
                             .filter_entry(|e| is_hidden(e) == false),
                     );
@@ -189,6 +193,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
         }
 
         let container = self.screen_state.aside_files.borrow().bounds;
+        let font_ids = self.app_state.app_data.font_ids.borrow();
 
         let text = UIText::new(
             root_folder
@@ -202,7 +207,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
             vec![
                 UIStyle::TextAlign(Some(Align::Left)),
                 UIStyle::BoundsSize(Some(container)),
-                UIStyle::Font(self.app_state.app_data.font_ids.borrow().clone()),
+                UIStyle::Font(font_ids.to_owned()),
                 UIStyle::TextColor(Color::rgb(155, 160, 174)),
                 UIStyle::TextSize(15.0),
                 UIStyle::Padding(10.0, 0.0),
@@ -211,15 +216,29 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
         text.draw(self.canvas);
 
-        for cpath in &root_folder.folder_structure_cache {
+        for (index, cpath) in root_folder.folder_structure_cache.iter().enumerate() {
             if cpath.depth() == 1 {
-                let path_line = UIPathLine::new(
+                let mut path_line = UIPathLine::new(
                     cpath,
                     self.app_state.clone(),
                     self.screen_state,
-                    1
+                    1,
+                    Vec::from([
+                        UIStyle::BoundsSize(Some((
+                            container.0,
+                            container.1 + 30.0, // title font_size * 2
+                            container.2,
+                            container.3
+                        ))),
+                        UIStyle::Font(font_ids.to_owned()),
+                        UIStyle::TextColor(Color::rgb(255, 255, 255)),
+                        UIStyle::TextSize(12.5),
+                        UIStyle::MarginTop(index as f32 * 12.5)
+                    ]),
+                    Box::new(|| {}),
                 );
-                path_line.draw(self.canvas); 
+
+                path_line.draw(self.canvas);
             }
         }
     }
