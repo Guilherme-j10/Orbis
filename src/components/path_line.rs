@@ -39,7 +39,7 @@ impl<'a> UIPathLine<'a> {
 
     pub fn draw<T: Renderer>(&mut self, canvas: &mut Canvas<T>) -> () {
         //let path_meta = self.root.metadata().unwrap();
-        let root_file_name = self.root.file_name().to_string_lossy();
+        let root_file_name = self.root.file_name().to_string_lossy().into_owned();
         let style = ComputedStyle::from(&self.style);
 
         let text_paint = Paint::color(style.text_color)
