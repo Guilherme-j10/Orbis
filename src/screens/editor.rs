@@ -1,5 +1,4 @@
 use femtovg::{Align, Canvas, Color, Paint, Path, Renderer};
-use walkdir::{DirEntry, WalkDir};
 use winit::keyboard::KeyCode;
 
 use crate::{
@@ -155,49 +154,27 @@ impl<'a, T: Renderer> Editor<'a, T> {
             return;
         }
 
-        let mut root_folder = self.screen_state.root_folder.borrow_mut();
+        let (cache, current_folder) = {
+            let data = self.screen_state.root_folder.borrow();
+            (
+                data.folder_structure_cache.clone(),
+                data.current_folder.clone(),
+            )
+        };
 
-        if root_folder.folder_structure_cache.len() == 0 {
-            let root_folder_pathbuf = root_folder.current_folder.as_ref().unwrap();
+        if cache.len() == 0 {
+            let machine_path = current_folder.as_ref().unwrap();
+            let entries = self.screen_state.get_ordened_direntry_list(machine_path);
+            let mut root_folder = self.screen_state.root_folder.borrow_mut();
 
-            fn is_hidden(entry: &DirEntry) -> bool {
-                entry
-                    .file_name()
-                    .to_str()
-                    .map(|s| s.starts_with("."))
-                    .unwrap_or(false)
-            }
-
-            let entries = || -> Box<dyn Iterator<Item = walkdir::Result<DirEntry>>> {
-                if root_folder.show_hidden_files == false {
-                    return Box::new(
-                        WalkDir::new(root_folder_pathbuf.as_path())
-                            .min_depth(1)
-                            .max_depth(1)
-                            .into_iter()
-                            .filter_entry(|e| is_hidden(e) == false),
-                    );
-                }
-
-                return Box::new(WalkDir::new(root_folder_pathbuf.as_path()).into_iter());
-            }();
-
-            for entry in entries {
-                match entry {
-                    Ok(dir) => {
-                        root_folder.folder_structure_cache.push(dir);
-                    }
-                    Err(er) => println!("error in waldir: {er}"),
-                }
-            }
+            root_folder.folder_structure_cache = entries;
         }
 
         let container = self.screen_state.aside_files.borrow().bounds;
         let font_ids = self.app_state.app_data.font_ids.borrow();
 
         let text = UIText::new(
-            root_folder
-                .current_folder
+            current_folder
                 .as_ref()
                 .and_then(|f| f.file_name())
                 .and_then(|f| Some(f.to_string_lossy()))
@@ -216,30 +193,31 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
         text.draw(self.canvas);
 
-        for (index, cpath) in root_folder.folder_structure_cache.iter().enumerate() {
-            if cpath.depth() == 1 {
-                let mut path_line = UIPathLine::new(
-                    cpath,
-                    self.app_state.clone(),
-                    self.screen_state,
-                    1,
-                    Vec::from([
-                        UIStyle::BoundsSize(Some((
-                            container.0,
-                            container.1 + 30.0, // title font_size * 2
-                            container.2,
-                            container.3
-                        ))),
-                        UIStyle::Font(font_ids.to_owned()),
-                        UIStyle::TextColor(Color::rgb(255, 255, 255)),
-                        UIStyle::TextSize(12.5),
-                        UIStyle::MarginTop(index as f32 * 12.5)
-                    ]),
-                    Box::new(|| {}),
-                );
+        for (index, cpath) in cache.iter().enumerate() {
+            let depth = cpath.depth();
 
-                path_line.draw(self.canvas);
-            }
+            let mut path_line = UIPathLine::new(
+                cpath,
+                self.app_state.clone(),
+                self.screen_state,
+                1,
+                Vec::from([
+                    UIStyle::BoundsSize(Some((
+                        container.0,
+                        container.1 + 30.0, // title font_size * 2
+                        container.2,
+                        container.3,
+                    ))),
+                    UIStyle::Font(font_ids.to_owned()),
+                    UIStyle::TextColor(Color::rgb(255, 255, 255)),
+                    UIStyle::TextSize(13.0),
+                    UIStyle::MarginTop(index as f32 * 13.0),
+                    UIStyle::PaddingDetail(depth as f32 * 10.0, 5.0, 0.0, 5.0),
+                ]),
+                Box::new(|| {}),
+            );
+
+            path_line.draw(self.canvas);
         }
     }
 

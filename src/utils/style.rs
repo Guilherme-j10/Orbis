@@ -7,6 +7,7 @@ pub enum UIStyle {
     AlignCenter(Option<(f32, f32)>),          // y, h
     MarginTop(f32),
     Padding(f32, f32),                        // horizontal, vertical
+    PaddingDetail(f32, f32, f32, f32),        // left, top, right, bottom
     Background(Color),
     TextColor(Color),
     TextAlign(Option<Align>),
@@ -22,6 +23,7 @@ pub struct ComputedStyle {
     pub justify: Option<(f32, f32)>,
     pub align: Option<(f32, f32)>,
     pub margin_top: f32,
+    pub padding_detail: (f32, f32, f32, f32),
     pub padding: (f32, f32),
     pub background: Color,
     pub text_color: Color,
@@ -68,6 +70,9 @@ impl From<&Vec<UIStyle>> for ComputedStyle {
                 }
                 UIStyle::Font(font_ids) => {
                     computed.fonts = font_ids.clone();
+                },
+                UIStyle::PaddingDetail(left, top, right, bottom) => {
+                    computed.padding_detail = (*left, *top, *right, *bottom);
                 }
             }
         }
