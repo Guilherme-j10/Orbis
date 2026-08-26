@@ -6,7 +6,7 @@ use std::{
     sync::{
         Arc,
         mpsc::{self, Receiver, Sender},
-    },
+    }, time::SystemTime,
 };
 
 use directories::ProjectDirs;
@@ -50,6 +50,7 @@ fn run<W: WindowSurface + 'static>(
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
             last_cursor_icon: Cell::default(),
+            last_cursor_touch_at: Cell::new(SystemTime::now()),
             font_mapping: RefCell::new(HashMap::default()),
             receiver_key_event: key_event_channel.1.unwrap(),
             project_dirs: ProjectDirs::from("com.orbis", "orbis", "orbis")
@@ -85,10 +86,11 @@ fn run<W: WindowSurface + 'static>(
                 canvas.set_size(size.width, size.height, dpi_factor as f32);
                 canvas.clear_rect(0, 0, size.width, size.height, Color::rgb(10, 10, 14));
 
-                let state_wrapper = state.clone();
-                Controller::render(&mut canvas, state_wrapper);
+                Controller::render(&mut canvas, state.clone());
 
                 let mut notification = NotificationRender::new(&mut canvas, state.clone());
+                
+                state.check_cursor_timer();
                 notification.render_loop();
 
                 surface.present(&mut canvas);

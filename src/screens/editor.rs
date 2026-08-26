@@ -195,6 +195,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
         for (index, cpath) in cache.iter().enumerate() {
             let depth = cpath.depth();
+            let padding_vertical = 7.0;
 
             let mut path_line = UIPathLine::new(
                 cpath,
@@ -211,8 +212,8 @@ impl<'a, T: Renderer> Editor<'a, T> {
                     UIStyle::Font(font_ids.to_owned()),
                     UIStyle::TextColor(Color::rgb(255, 255, 255)),
                     UIStyle::TextSize(13.0),
-                    UIStyle::MarginTop(index as f32 * 13.0),
-                    UIStyle::PaddingDetail(depth as f32 * 10.0, 5.0, 0.0, 5.0),
+                    UIStyle::MarginTop(index as f32 * (13.0 + padding_vertical * 2.0)),
+                    UIStyle::PaddingDetail(depth as f32 * 10.0, padding_vertical, 0.0, padding_vertical),
                 ]),
                 Box::new(|| {}),
             );

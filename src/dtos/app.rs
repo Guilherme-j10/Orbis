@@ -1,13 +1,8 @@
 use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    path::PathBuf,
-    rc::Rc,
-    sync::{
+     cell::{Cell, RefCell}, collections::HashMap, path::PathBuf, rc::Rc, sync::{
         Arc,
         mpsc::{Receiver, Sender},
-    },
-    time::SystemTime,
+    }, time::{Duration, SystemTime}
 };
 
 use directories::ProjectDirs;
@@ -205,6 +200,7 @@ pub struct HardwareState {
 #[derive(Debug)]
 pub struct ApplicationSettingsData {
     pub last_cursor_icon: Cell<CursorIcon>,
+    pub last_cursor_touch_at: Cell<SystemTime>,
     pub font_ids: RefCell<Vec<FontId>>,
     pub font_mapping: RefCell<MappedFont>,
     pub project_dirs: ProjectDirs,
@@ -221,10 +217,19 @@ pub struct ApplicationState {
 }
 
 impl ApplicationState {
+    pub fn check_cursor_timer(&self) -> () {
+        if self.app_data.last_cursor_touch_at.get().elapsed().unwrap() > Duration::from_millis(10) {
+            self.change_cursor_icon(CursorIcon::Default);
+        }
+    }
+
     pub fn change_cursor_icon(&self, request: CursorIcon) -> () {
         if request != self.app_data.last_cursor_icon.get() {
             self.window.set_cursor(request);
             self.app_data.last_cursor_icon.set(request);
+            self.app_data.last_cursor_touch_at.set(SystemTime::now())
+        } else {
+            self.app_data.last_cursor_touch_at.set(SystemTime::now())
         }
     }
 

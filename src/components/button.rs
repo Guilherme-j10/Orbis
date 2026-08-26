@@ -63,9 +63,7 @@ impl<'a> UIButton<'a>{
 
         if self.is_mouse_over(x, y, width, height) {
             self.app_state.change_cursor_icon(CursorIcon::Pointer);
-        } else{
-            self.app_state.change_cursor_icon(CursorIcon::Default);
-        }
+        } 
 
         self.button_clicked(x, y, width, height);
 
@@ -90,7 +88,6 @@ impl<'a> UIButton<'a>{
         if self.app_state.had_click() && self.is_mouse_over(x, y, w, h) {
             if let Some(callback) = &self.on_click {
                 callback();
-                self.app_state.change_cursor_icon(CursorIcon::Default);
             }
         }
     }
