@@ -3,7 +3,7 @@ use walkdir::DirEntry;
 use winit::window::CursorIcon;
 
 use crate::{
-    dtos::app::{ApplicationStateType, EditorScreenState},
+    dtos::app::{ApplicationStateType},
     utils::{
         constants::{FILE_ICON, FOLDER_CLOSE_ICON},
         style::{ComputedStyle, UIStyle},
@@ -13,9 +13,7 @@ use crate::{
 
 pub struct UIPathLine<'a> {
     root: &'a DirEntry,
-    from_depth: usize, // the origin layer
     app_state: ApplicationStateType,
-    screen_state: &'a EditorScreenState,
     path: Path,
     on_click: Box<dyn Fn() -> () + 'a>,
     style: Vec<UIStyle>,
@@ -25,8 +23,6 @@ impl<'a> UIPathLine<'a> {
     pub fn new(
         root: &'a DirEntry,
         app_state: ApplicationStateType,
-        screen_state: &'a EditorScreenState,
-        from_depth: usize,
         style: Vec<UIStyle>,
         on_click: Box<dyn Fn() -> () + 'a>,
     ) -> Self {
@@ -35,8 +31,6 @@ impl<'a> UIPathLine<'a> {
             style,
             on_click,
             app_state,
-            from_depth,
-            screen_state,
             path: Path::new(),
         }
     }

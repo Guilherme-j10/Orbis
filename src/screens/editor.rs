@@ -200,8 +200,6 @@ impl<'a, T: Renderer> Editor<'a, T> {
             let mut path_line = UIPathLine::new(
                 cpath,
                 self.app_state.clone(),
-                self.screen_state,
-                1,
                 Vec::from([
                     UIStyle::BoundsSize(Some((
                         container.0,
