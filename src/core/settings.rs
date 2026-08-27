@@ -9,12 +9,14 @@ use directories::ProjectDirs;
 use crate::{
     dtos::app::FontMappingState,
     font_engine::font::OrbParts,
-    utils::constants::{MAGIC, MAP_FILE_NAME, VERSION},
+    utils::constants::{FILE_EXPLORER_TREE, MAGIC, MAP_FILE_NAME, VERSION},
 };
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Settings {
     local_file_mapping: PathBuf,
+    local_file_explorer_tree: PathBuf,
 }
 
 impl Settings {
@@ -33,10 +35,19 @@ impl Settings {
 
         Self {
             local_file_mapping: data_local_dir.join(MAP_FILE_NAME),
+            local_file_explorer_tree: data_local_dir.join(FILE_EXPLORER_TREE),
         }
     }
 
-    pub fn save(&self, data: &FontMappingState) -> Result<String, std::io::Error> {
+    #[allow(dead_code)]
+    pub fn save_explorer_state(&self) -> Result<String, std::io::Error> {
+        // save information in file_state of what is the current 
+        // folde open, and the file tree state
+
+        Ok(String::from("ola mundo"))
+    } 
+
+    pub fn save_map_file(&self, data: &FontMappingState) -> Result<String, std::io::Error> {
         let bind_chars_data = data.binded_char.borrow().clone();
 
         let payload = bincode::serialize(&bind_chars_data)
@@ -51,7 +62,7 @@ impl Settings {
         Ok(local_save)
     }
 
-    pub fn load(&self) -> Result<HashMap<String, Vec<OrbParts>>, std::io::Error> {
+    pub fn load_map_file(&self) -> Result<HashMap<String, Vec<OrbParts>>, std::io::Error> {
         let mut file = std::fs::File::open(&self.local_file_mapping)?;
         let mut buffer_file = Vec::new();
         file.read_to_end(&mut buffer_file)?;

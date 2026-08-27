@@ -55,7 +55,7 @@ impl<'a, T: Renderer> InitialScreen<'a, T> {
             let settings = Settings::new(&self.app_state.app_data.project_dirs);
             self.state_screen.font_mapping_verificate.set(true);
 
-            match settings.load() {
+            match settings.load_map_file() {
                 Ok(mapping) => {
                     self.app_state.app_data.font_mapping.replace(mapping);
                     return Some(ApplicationScreens::Editor(EditorScreenState::default()));

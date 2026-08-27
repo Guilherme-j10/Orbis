@@ -215,7 +215,9 @@ impl<'a, T: Renderer> Editor<'a, T> {
                     UIStyle::MarginTop(index as f32 * (13.0 + padding_vertical * 2.0)),
                     UIStyle::PaddingDetail(depth as f32 * 10.0, padding_vertical, 0.0, padding_vertical),
                 ]),
-                Box::new(|| {}),
+                Box::new(|| {
+                    println!("Clicked on me");
+                }),
             );
 
             path_line.draw(self.canvas);

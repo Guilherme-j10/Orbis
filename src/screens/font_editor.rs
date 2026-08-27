@@ -141,7 +141,7 @@ impl<'a, T: Renderer> FontEditorScreen<'a, T> {
                 ],
                 Some(Box::new(|| {
                     let settings = Settings::new(&self.app_state.app_data.project_dirs);
-                    match settings.save(&self.state_screen) {
+                    match settings.save_map_file(&self.state_screen) {
                         Ok(save_local) => {
                             self.app_state
                                 .push_notification(NotificationKind::Info(format!(

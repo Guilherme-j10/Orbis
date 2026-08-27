@@ -271,8 +271,8 @@ impl ApplicationState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),             //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),                //cx,cy - r
 }
 
 pub struct OrbPath {
