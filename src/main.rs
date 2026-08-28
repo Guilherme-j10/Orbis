@@ -6,7 +6,8 @@ use std::{
     sync::{
         Arc,
         mpsc::{self, Receiver, Sender},
-    }, time::SystemTime,
+    },
+    time::SystemTime,
 };
 
 use directories::ProjectDirs;
@@ -46,6 +47,7 @@ fn run<W: WindowSurface + 'static>(
         hardware: HardwareState {
             mouse: RefCell::new(MousePosition::default()),
             hit_click: RefCell::new(None),
+            last_pressed_at: Cell::new(SystemTime::now())
         },
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),
@@ -89,7 +91,7 @@ fn run<W: WindowSurface + 'static>(
                 Controller::render(&mut canvas, state.clone());
 
                 let mut notification = NotificationRender::new(&mut canvas, state.clone());
-                
+
                 state.check_cursor_timer();
                 notification.render_loop();
 

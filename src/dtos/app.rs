@@ -1,8 +1,13 @@
 use std::{
-     cell::{Cell, RefCell}, collections::HashMap, path::PathBuf, rc::Rc, sync::{
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    path::PathBuf,
+    rc::Rc,
+    sync::{
         Arc,
         mpsc::{Receiver, Sender},
-    }, time::{Duration, SystemTime}
+    },
+    time::{Duration, SystemTime},
 };
 
 use directories::ProjectDirs;
@@ -191,10 +196,27 @@ pub enum ApplicationScreens {
     Editor(EditorScreenState),
 }
 
+#[derive(Debug, PartialEq)]
+pub enum MouseState {
+    Pressed,
+    Released,
+    Holding,
+}
+
+impl From<ElementState> for MouseState {
+    fn from(value: ElementState) -> Self {
+        match value {
+            ElementState::Pressed => Self::Pressed,
+            ElementState::Released => Self::Released,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct HardwareState {
     pub mouse: RefCell<MousePosition>,
-    pub hit_click: RefCell<Option<ElementState>>,
+    pub hit_click: RefCell<Option<MouseState>>,
+    pub last_pressed_at: Cell<SystemTime>,
 }
 
 #[derive(Debug)]
@@ -246,19 +268,38 @@ impl ApplicationState {
 
     pub fn set_had_click(&self, new_state: ElementState) -> () {
         let mut current_state = self.hardware.hit_click.borrow_mut();
-        if let Some(state) = *current_state {
-            if new_state != state {
-                *current_state = Some(new_state);
+        if let Some(state) = current_state.as_ref() {
+            if MouseState::from(new_state) != *state {
+                if *state == MouseState::Holding && new_state == ElementState::Released {
+                    *current_state = Some(MouseState::from(new_state));
+                    return;
+                }
+
+                if new_state == ElementState::Pressed && *state != MouseState::Holding {
+                    *current_state = Some(MouseState::from(new_state));
+                    self.hardware.last_pressed_at.set(SystemTime::now());
+                }
+
+                return;
             }
-        } else {
-            *current_state = Some(new_state)
+
+            if new_state == ElementState::Pressed
+                && self.hardware.last_pressed_at.get().elapsed().unwrap()
+                    > Duration::from_millis(10)
+            {
+                *current_state = Some(MouseState::Holding);
+            }
+
+            return;
         }
+
+        *current_state = Some(MouseState::from(new_state))
     }
 
     pub fn had_click(&self) -> bool {
         let had_click = self.hardware.hit_click.borrow();
-        if let Some(element_state) = *had_click {
-            if element_state == ElementState::Pressed {
+        if let Some(element_state) = had_click.as_ref() {
+            if element_state == &MouseState::Pressed {
                 return true;
             }
         }
@@ -271,8 +312,8 @@ impl ApplicationState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),                //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),             //cx,cy - r
 }
 
 pub struct OrbPath {
