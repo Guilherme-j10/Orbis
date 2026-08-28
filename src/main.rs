@@ -47,7 +47,7 @@ fn run<W: WindowSurface + 'static>(
         hardware: HardwareState {
             mouse: RefCell::new(MousePosition::default()),
             hit_click: RefCell::new(None),
-            last_pressed_at: Cell::new(SystemTime::now())
+            pcount: Cell::default()
         },
         app_data: ApplicationSettingsData {
             font_ids: RefCell::new(vec![]),

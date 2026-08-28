@@ -216,7 +216,7 @@ impl From<ElementState> for MouseState {
 pub struct HardwareState {
     pub mouse: RefCell<MousePosition>,
     pub hit_click: RefCell<Option<MouseState>>,
-    pub last_pressed_at: Cell<SystemTime>,
+    pub pcount: Cell<u32>,
 }
 
 #[derive(Debug)]
@@ -268,26 +268,27 @@ impl ApplicationState {
 
     pub fn set_had_click(&self, new_state: ElementState) -> () {
         let mut current_state = self.hardware.hit_click.borrow_mut();
+        println!("recebendo {:?}", new_state);
         if let Some(state) = current_state.as_ref() {
             if MouseState::from(new_state) != *state {
-                if *state == MouseState::Holding && new_state == ElementState::Released {
-                    *current_state = Some(MouseState::from(new_state));
-                    return;
-                }
+                *current_state = Some(MouseState::from(new_state));
 
-                if new_state == ElementState::Pressed && *state != MouseState::Holding {
-                    *current_state = Some(MouseState::from(new_state));
-                    self.hardware.last_pressed_at.set(SystemTime::now());
+                if new_state == ElementState::Released {
+                    self.hardware.pcount.set(0)
                 }
 
                 return;
             }
 
-            if new_state == ElementState::Pressed
-                && self.hardware.last_pressed_at.get().elapsed().unwrap()
-                    > Duration::from_millis(10)
-            {
-                *current_state = Some(MouseState::Holding);
+            println!("{:?}", self.hardware.pcount.get());
+
+            if new_state == ElementState::Pressed {
+                if self.hardware.pcount.get() >= 1 {
+                    *current_state = Some(MouseState::Holding);
+                    return;
+                }
+
+                self.hardware.pcount.set(self.hardware.pcount.get() + 1)
             }
 
             return;
@@ -299,6 +300,7 @@ impl ApplicationState {
     pub fn had_click(&self) -> bool {
         let had_click = self.hardware.hit_click.borrow();
         if let Some(element_state) = had_click.as_ref() {
+            println!("{:?}", element_state);
             if element_state == &MouseState::Pressed {
                 return true;
             }
