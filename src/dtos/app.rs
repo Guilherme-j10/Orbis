@@ -106,7 +106,7 @@ impl EditorScreenState {
             );
         }
 
-        return Box::new(WalkDir::new(path).into_iter());
+        return Box::new(WalkDir::new(path).min_depth(1).max_depth(1).into_iter());
     }
 
     pub fn get_ordened_direntry_list(&self, path: &PathBuf) -> Vec<walkdir::DirEntry> {
@@ -153,7 +153,8 @@ impl EditorScreenState {
 pub struct RootFolder {
     pub current_folder: Option<PathBuf>,
     pub show_hidden_files: bool,
-    pub folder_structure_cache: Vec<walkdir::DirEntry>,
+    pub path_cache_list: Vec<walkdir::DirEntry>,
+    pub path_cache: Vec<walkdir::DirEntry>,
 }
 
 #[derive(Debug, Default)]
@@ -196,26 +197,10 @@ pub enum ApplicationScreens {
     Editor(EditorScreenState),
 }
 
-#[derive(Debug, PartialEq)]
-pub enum MouseState {
-    Pressed,
-    Released,
-    Holding,
-}
-
-impl From<ElementState> for MouseState {
-    fn from(value: ElementState) -> Self {
-        match value {
-            ElementState::Pressed => Self::Pressed,
-            ElementState::Released => Self::Released,
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct HardwareState {
     pub mouse: RefCell<MousePosition>,
-    pub hit_click: RefCell<Option<MouseState>>,
+    pub hit_click: RefCell<Option<ElementState>>,
     pub pcount: Cell<u32>,
 }
 
@@ -268,42 +253,34 @@ impl ApplicationState {
 
     pub fn set_had_click(&self, new_state: ElementState) -> () {
         let mut current_state = self.hardware.hit_click.borrow_mut();
-        println!("recebendo {:?}", new_state);
         if let Some(state) = current_state.as_ref() {
-            if MouseState::from(new_state) != *state {
-                *current_state = Some(MouseState::from(new_state));
-
-                if new_state == ElementState::Released {
-                    self.hardware.pcount.set(0)
-                }
-
+            if new_state != *state {
+                *current_state = Some(new_state);
                 return;
-            }
-
-            println!("{:?}", self.hardware.pcount.get());
-
-            if new_state == ElementState::Pressed {
-                if self.hardware.pcount.get() >= 1 {
-                    *current_state = Some(MouseState::Holding);
-                    return;
-                }
-
-                self.hardware.pcount.set(self.hardware.pcount.get() + 1)
             }
 
             return;
         }
 
-        *current_state = Some(MouseState::from(new_state))
+        *current_state = Some(new_state)
     }
 
     pub fn had_click(&self) -> bool {
         let had_click = self.hardware.hit_click.borrow();
-        if let Some(element_state) = had_click.as_ref() {
-            println!("{:?}", element_state);
-            if element_state == &MouseState::Pressed {
+        let count = self.hardware.pcount.get();
+
+        if let Some(element_state) = *had_click {
+            if element_state == ElementState::Pressed {
+                if count >= 10 {
+                    return false;
+                }
+
+                self.hardware.pcount.set(count + 1);
                 return true;
             }
+
+            self.hardware.pcount.set(0);
+            return false;
         }
 
         return false;

@@ -157,7 +157,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
         let (cache, current_folder) = {
             let data = self.screen_state.root_folder.borrow();
             (
-                data.folder_structure_cache.clone(),
+                data.path_cache_list.clone(),
                 data.current_folder.clone(),
             )
         };
@@ -167,7 +167,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
             let entries = self.screen_state.get_ordened_direntry_list(machine_path);
             let mut root_folder = self.screen_state.root_folder.borrow_mut();
 
-            root_folder.folder_structure_cache = entries;
+            root_folder.path_cache_list = entries;
         }
 
         let container = self.screen_state.aside_files.borrow().bounds;
@@ -200,6 +200,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
             let mut path_line = UIPathLine::new(
                 cpath,
                 self.app_state.clone(),
+                self.screen_state,
                 Vec::from([
                     UIStyle::BoundsSize(Some((
                         container.0,
@@ -213,9 +214,6 @@ impl<'a, T: Renderer> Editor<'a, T> {
                     UIStyle::MarginTop(index as f32 * (13.0 + padding_vertical * 2.0)),
                     UIStyle::PaddingDetail(depth as f32 * 10.0, padding_vertical, 0.0, padding_vertical),
                 ]),
-                Box::new(|| {
-                    println!("Clicked on me");
-                }),
             );
 
             path_line.draw(self.canvas);

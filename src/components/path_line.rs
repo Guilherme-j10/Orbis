@@ -3,7 +3,7 @@ use walkdir::DirEntry;
 use winit::window::CursorIcon;
 
 use crate::{
-    dtos::app::{ApplicationStateType},
+    dtos::app::{ApplicationStateType, EditorScreenState},
     utils::{
         constants::{FILE_ICON, FOLDER_CLOSE_ICON},
         style::{ComputedStyle, UIStyle},
@@ -13,9 +13,10 @@ use crate::{
 
 pub struct UIPathLine<'a> {
     root: &'a DirEntry,
+    root_metadata: std::fs::Metadata,
     app_state: ApplicationStateType,
+    screen_state: &'a EditorScreenState,
     path: Path,
-    on_click: Box<dyn Fn() -> () + 'a>,
     style: Vec<UIStyle>,
 }
 
@@ -23,20 +24,20 @@ impl<'a> UIPathLine<'a> {
     pub fn new(
         root: &'a DirEntry,
         app_state: ApplicationStateType,
+        screen_state: &'a EditorScreenState,
         style: Vec<UIStyle>,
-        on_click: Box<dyn Fn() -> () + 'a>,
     ) -> Self {
         Self {
             root,
             style,
-            on_click,
             app_state,
+            screen_state,
             path: Path::new(),
+            root_metadata: root.metadata().unwrap(),
         }
     }
 
     pub fn draw<T: Renderer>(&mut self, canvas: &mut Canvas<T>) -> () {
-        let path_meta = self.root.metadata().unwrap();
         let root_file_name = self.root.file_name().to_string_lossy().into_owned();
         let style = ComputedStyle::from(&self.style);
 
@@ -88,7 +89,7 @@ impl<'a> UIPathLine<'a> {
             .expect("Failed to fill button text");
 
         let icon = || -> &[u8] {
-            if path_meta.is_dir() {
+            if self.root_metadata.is_dir() {
                 return FOLDER_CLOSE_ICON;
             }
 
@@ -118,7 +119,11 @@ impl<'a> UIPathLine<'a> {
 
     fn button_clicked(&self, x: f32, y: f32, w: f32, h: f32) -> () {
         if self.app_state.had_click() && self.is_mouse_over(x, y, w, h) {
-            (self.on_click)();
+            if self.root_metadata.is_dir() {
+                return;
+            }
+
+            // is file
         }
     }
 }
