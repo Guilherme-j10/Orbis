@@ -4,6 +4,7 @@ use femtovg::{Align, Baseline, Canvas, Color, Paint, Path, Renderer};
 
 use crate::dtos::app::ApplicationStateType;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum NotificationKind {
     Success(String),

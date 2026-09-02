@@ -164,10 +164,11 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
         if cache.len() == 0 {
             let machine_path = current_folder.as_ref().unwrap();
-            let entries = self.screen_state.get_ordened_direntry_list(machine_path);
+            let (first_path_layer, store) = self.screen_state.get_ordened_direntry_list(machine_path);
             let mut root_folder = self.screen_state.root_folder.borrow_mut();
 
-            root_folder.path_cache_list = entries;
+            root_folder.path_cache_list = first_path_layer;
+            root_folder.path_store = store;
         }
 
         let container = self.screen_state.aside_files.borrow().bounds;

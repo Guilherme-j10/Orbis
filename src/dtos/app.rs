@@ -77,6 +77,15 @@ pub trait ScreenBoundsCheck {
 }
 
 #[derive(Debug, Default)]
+pub struct RootFolder {
+    pub current_folder: Option<PathBuf>,
+    pub show_hidden_files: bool,
+    pub path_cache_list: Vec<walkdir::DirEntry>,
+    pub path_store: Vec<walkdir::DirEntry>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Default)]
 pub struct EditorScreenState {
     pub last_click_at: Cell<(f32, f32)>, // x,y
     pub aside_files: RefCell<AsideContainerState>,
@@ -99,8 +108,8 @@ impl EditorScreenState {
         if self.root_folder.borrow().show_hidden_files == false {
             return Box::new(
                 WalkDir::new(path)
-                    .min_depth(1)
-                    .max_depth(1)
+                    // .min_depth(1)
+                    // .max_depth(1)
                     .into_iter()
                     .filter_entry(|e| is_hidden(e) == false),
             );
@@ -109,8 +118,12 @@ impl EditorScreenState {
         return Box::new(WalkDir::new(path).min_depth(1).max_depth(1).into_iter());
     }
 
-    pub fn get_ordened_direntry_list(&self, path: &PathBuf) -> Vec<walkdir::DirEntry> {
+    pub fn get_ordened_direntry_list(
+        &self,
+        path: &PathBuf,
+    ) -> (Vec<walkdir::DirEntry>, Vec<walkdir::DirEntry>) {
         let entries = self.entries(path);
+        let mut store: Vec<walkdir::DirEntry> = Vec::default();
 
         let mut folder: Vec<walkdir::DirEntry> = Vec::default();
         let mut files: Vec<walkdir::DirEntry> = Vec::default();
@@ -119,14 +132,17 @@ impl EditorScreenState {
         for entrie in entries {
             match entrie {
                 Ok(dir) => {
-                    if let Some(metadata) = dir.metadata().ok() {
-                        if metadata.is_dir() {
-                            folder.push(dir);
-                        } else if metadata.is_file() {
-                            files.push(dir);
+                    store.push(dir.clone());
+                    if dir.depth() == 1 {
+                        if let Some(metadata) = dir.metadata().ok() {
+                            if metadata.is_dir() {
+                                folder.push(dir);
+                            } else if metadata.is_file() {
+                                files.push(dir);
+                            }
+                        } else {
+                            no_meta.push(dir);
                         }
-                    } else {
-                        no_meta.push(dir);
                     }
                 }
                 Err(_) => {}
@@ -145,16 +161,8 @@ impl EditorScreenState {
         final_listage.append(&mut files);
         final_listage.append(&mut no_meta);
 
-        return final_listage;
+        return (final_listage, vec![]);
     }
-}
-
-#[derive(Debug, Default)]
-pub struct RootFolder {
-    pub current_folder: Option<PathBuf>,
-    pub show_hidden_files: bool,
-    pub path_cache_list: Vec<walkdir::DirEntry>,
-    pub path_cache: Vec<walkdir::DirEntry>,
 }
 
 #[derive(Debug, Default)]
