@@ -200,6 +200,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
 
             let mut path_line = UIPathLine::new(
                 cpath,
+                index,
                 self.app_state.clone(),
                 self.screen_state,
                 Vec::from([

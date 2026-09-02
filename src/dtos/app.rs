@@ -161,7 +161,7 @@ impl EditorScreenState {
         final_listage.append(&mut files);
         final_listage.append(&mut no_meta);
 
-        return (final_listage, vec![]);
+        return (final_listage, store);
     }
 }
 

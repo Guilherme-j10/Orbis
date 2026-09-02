@@ -13,6 +13,7 @@ use crate::{
 
 pub struct UIPathLine<'a> {
     root: &'a DirEntry,
+    index: usize,
     root_metadata: std::fs::Metadata,
     app_state: ApplicationStateType,
     screen_state: &'a EditorScreenState,
@@ -23,6 +24,7 @@ pub struct UIPathLine<'a> {
 impl<'a> UIPathLine<'a> {
     pub fn new(
         root: &'a DirEntry,
+        index: usize,
         app_state: ApplicationStateType,
         screen_state: &'a EditorScreenState,
         style: Vec<UIStyle>,
@@ -30,6 +32,7 @@ impl<'a> UIPathLine<'a> {
         Self {
             root,
             style,
+            index,
             app_state,
             screen_state,
             path: Path::new(),
@@ -120,6 +123,15 @@ impl<'a> UIPathLine<'a> {
     fn button_clicked(&self, x: f32, y: f32, w: f32, h: f32) -> () {
         if self.app_state.had_click() && self.is_mouse_over(x, y, w, h) {
             if self.root_metadata.is_dir() {
+                let store_data = self.screen_state.root_folder.borrow();
+                let filtered = store_data
+                    .path_store
+                    .iter()
+                    .filter(|f| f.depth() == self.root.depth() + 1)
+                    .collect::<Vec<&DirEntry>>();
+
+                println!("{:?}", filtered);
+
                 return;
             }
 
