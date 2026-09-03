@@ -134,6 +134,11 @@ impl<'a> UIPathLine<'a> {
         if self.is_mouse_over(x, y, w, h) {
             if self.app_state.had_click() {
                 if self.root_metadata.is_dir() {
+                    /*
+                        [] - ordering listage paths
+                        [] - remove childrens paths whem parent goes out
+                    */
+
                     let filtered = {
                         let store_data = self.screen_state.root_folder.borrow();
                         store_data
