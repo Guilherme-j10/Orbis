@@ -3,7 +3,7 @@ use walkdir::DirEntry;
 use winit::window::CursorIcon;
 
 use crate::{
-    dtos::app::{ApplicationStateType, EditorScreenState},
+    dtos::app::{ApplicationStateType, EditorScreenState, OrganizeListKind},
     utils::{
         constants::{FILE_ICON, FOLDER_CLOSE_ICON, FOLDER_OPEN_ICON},
         style::{ComputedStyle, UIStyle},
@@ -135,16 +135,16 @@ impl<'a> UIPathLine<'a> {
             if self.app_state.had_click() {
                 if self.root_metadata.is_dir() {
                     /*
-                        [] - ordering listage paths
-                        [] - remove childrens paths whem parent goes out
+                        [] - remove childrens paths when parent goes out
                     */
 
+                    let target_depth = self.root.depth() + 1;
                     let filtered = {
                         let store_data = self.screen_state.root_folder.borrow();
                         store_data
                             .path_store
                             .iter()
-                            .filter(|f| f.depth() == self.root.depth() + 1)
+                            .filter(|f| f.depth() == target_depth)
                             .filter(|p| p.path().starts_with(self.root.path()))
                             .map(|f| f.clone())
                             .collect::<Vec<DirEntry>>()
@@ -155,8 +155,14 @@ impl<'a> UIPathLine<'a> {
                     let mut root_path = self.screen_state.root_folder.borrow_mut();
 
                     if !root_path.path_open.contains(&self.root.clone().into_path()) {
+                        let output = EditorScreenState::organize_list(
+                            OrganizeListKind::Raw(filtered),
+                            Some(target_depth),
+                            None,
+                        );
+
                         root_path.path_open.push(pathbuf);
-                        root_path.path_cache_list.splice(cindex..cindex, filtered);
+                        root_path.path_cache_list.splice(cindex..cindex, output);
 
                         return;
                     }

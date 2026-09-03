@@ -29,6 +29,11 @@ pub enum OrbKeyEvent {
     RawKey(KeyCode),
 }
 
+pub enum OrganizeListKind {
+    Trait(DirEntryList),
+    Raw(Vec<walkdir::DirEntry>),
+}
+
 pub type EditorLayoutBound = (f32, f32, f32, f32); // x,y - w,h
 pub type OrbGliph = OrbKeyEvent;
 pub type ContextPoints = (f32, f32);
@@ -82,7 +87,7 @@ pub struct RootFolder {
     pub show_hidden_files: bool,
     pub path_cache_list: Vec<walkdir::DirEntry>,
     pub path_store: Vec<walkdir::DirEntry>,
-    pub path_open: Vec<PathBuf>
+    pub path_open: Vec<PathBuf>,
 }
 
 #[allow(dead_code)]
@@ -109,8 +114,6 @@ impl EditorScreenState {
         if self.root_folder.borrow().show_hidden_files == false {
             return Box::new(
                 WalkDir::new(path)
-                    // .min_depth(1)
-                    // .max_depth(1)
                     .into_iter()
                     .filter_entry(|e| is_hidden(e) == false),
             );
@@ -119,34 +122,48 @@ impl EditorScreenState {
         return Box::new(WalkDir::new(path).min_depth(1).max_depth(1).into_iter());
     }
 
-    pub fn get_ordened_direntry_list(
-        &self,
-        path: &PathBuf,
-    ) -> (Vec<walkdir::DirEntry>, Vec<walkdir::DirEntry>) {
-        let entries = self.entries(path);
-        let mut store: Vec<walkdir::DirEntry> = Vec::default();
-
+    pub fn organize_list<'a>(
+        input: OrganizeListKind,
+        target_path: Option<usize>,
+        mut callback: Option<Box<dyn FnMut(walkdir::DirEntry) -> () + 'a>>,
+    ) -> Vec<walkdir::DirEntry> {
         let mut folder: Vec<walkdir::DirEntry> = Vec::default();
         let mut files: Vec<walkdir::DirEntry> = Vec::default();
         let mut no_meta: Vec<walkdir::DirEntry> = Vec::default();
 
-        for entrie in entries {
-            match entrie {
-                Ok(dir) => {
-                    store.push(dir.clone());
-                    if dir.depth() == 1 {
-                        if let Some(metadata) = dir.metadata().ok() {
-                            if metadata.is_dir() {
-                                folder.push(dir);
-                            } else if metadata.is_file() {
-                                files.push(dir);
-                            }
-                        } else {
-                            no_meta.push(dir);
+        let mut classification = |dir: walkdir::DirEntry| -> () {
+            if let Some(store_fun) = &mut callback {
+                store_fun(dir.clone())
+            }
+
+            if dir.depth() == target_path.unwrap_or(1) {
+                if let Some(metadata) = dir.metadata().ok() {
+                    if metadata.is_dir() {
+                        folder.push(dir);
+                    } else if metadata.is_file() {
+                        files.push(dir);
+                    }
+                } else {
+                    no_meta.push(dir);
+                }
+            }
+        };
+
+        match input {
+            OrganizeListKind::Raw(list) => {
+                for entrie in list {
+                    classification(entrie)
+                }
+            }
+            OrganizeListKind::Trait(list) => {
+                for entrie in list {
+                    match entrie {
+                        Ok(dir) => {
+                            classification(dir);
                         }
+                        Err(_) => {}
                     }
                 }
-                Err(_) => {}
             }
         }
 
@@ -161,6 +178,24 @@ impl EditorScreenState {
         final_listage.append(&mut folder);
         final_listage.append(&mut files);
         final_listage.append(&mut no_meta);
+
+        final_listage
+    }
+
+    pub fn get_ordened_direntry_list(
+        &self,
+        path: &PathBuf,
+    ) -> (Vec<walkdir::DirEntry>, Vec<walkdir::DirEntry>) {
+        let entries = self.entries(path);
+        let mut store: Vec<walkdir::DirEntry> = Vec::default();
+
+        let final_listage = Self::organize_list(
+            OrganizeListKind::Trait(entries),
+            None,
+            Some(Box::new(|dir| {
+                store.push(dir);
+            })),
+        );
 
         return (final_listage, store);
     }
@@ -280,7 +315,7 @@ impl ApplicationState {
 
         if let Some(element_state) = *had_click {
             if element_state == ElementState::Pressed {
-                if count >= 10 {
+                if count >= 11 {
                     return false;
                 }
 
@@ -300,8 +335,8 @@ impl ApplicationState {
 pub enum OrbPathBounds {
     Rect(f32, f32, f32, f32),             //x,y - w,h
     RotatedRect(f32, f32, f32, f32, f32), //x,y - w,h - angle in degrees
-    Arc(f32, f32, f32, f32, bool, u8),    //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
-    Circle(f32, f32, f32),                //cx,cy - r
+    Arc(f32, f32, f32, f32, bool, u8), //cx,cy - r - stroke_w - is_half - side: 1 = left, 2 = right, 0 = none
+    Circle(f32, f32, f32),             //cx,cy - r
 }
 
 pub struct OrbPath {

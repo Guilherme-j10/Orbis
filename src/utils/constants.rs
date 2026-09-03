@@ -4,7 +4,7 @@ pub const MAP_FILE_NAME: &'static str = "font_map.orb";
 pub const FILE_EXPLORER_TREE: &'static str = "file_explorer_state.orb";
 
 pub const FILE_ICON: &[u8] = include_bytes!("../../assets/file.svg");
-pub const FILE_PLUS_ICON: &[u8] = include_bytes!("../../assets/file-plus-corner.svg");
+// pub const FILE_PLUS_ICON: &[u8] = include_bytes!("../../assets/file-plus-corner.svg");
 pub const FOLDER_CLOSE_ICON: &[u8] = include_bytes!("../../assets/folder.svg");
 pub const FOLDER_OPEN_ICON: &[u8] = include_bytes!("../../assets/folder-open.svg");
-pub const FOLDER_PLUS_ICON: &[u8] = include_bytes!("../../assets/folder-plus.svg");
+// pub const FOLDER_PLUS_ICON: &[u8] = include_bytes!("../../assets/folder-plus.svg");
