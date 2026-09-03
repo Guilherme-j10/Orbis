@@ -123,14 +123,23 @@ impl<'a> UIPathLine<'a> {
     fn button_clicked(&self, x: f32, y: f32, w: f32, h: f32) -> () {
         if self.app_state.had_click() && self.is_mouse_over(x, y, w, h) {
             if self.root_metadata.is_dir() {
-                let store_data = self.screen_state.root_folder.borrow();
-                let filtered = store_data
-                    .path_store
-                    .iter()
-                    .filter(|f| f.depth() == self.root.depth() + 1)
-                    .collect::<Vec<&DirEntry>>();
+                let filtered = {
+                    let store_data = self.screen_state.root_folder.borrow();
+                    store_data
+                        .path_store
+                        .iter()
+                        .filter(|f| f.depth() == self.root.depth() + 1)
+                        .filter(|p| p.path().starts_with(self.root.path()))
+                        .map(|f| f.clone())
+                        .collect::<Vec<DirEntry>>()
+                };
 
-                println!("{:?}", filtered);
+                let cindex = self.index + 1;
+                self.screen_state
+                    .root_folder
+                    .borrow_mut()
+                    .path_cache_list
+                    .splice(cindex..cindex, filtered);
 
                 return;
             }
