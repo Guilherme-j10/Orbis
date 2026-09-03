@@ -131,35 +131,44 @@ impl<'a> UIPathLine<'a> {
     }
 
     fn button_clicked(&self, x: f32, y: f32, w: f32, h: f32) -> () {
-        if self.app_state.had_click() && self.is_mouse_over(x, y, w, h) {
-            if self.root_metadata.is_dir() {
-                let filtered = {
-                    let store_data = self.screen_state.root_folder.borrow();
-                    store_data
-                        .path_store
+        if self.is_mouse_over(x, y, w, h) {
+            if self.app_state.had_click() {
+                if self.root_metadata.is_dir() {
+                    let filtered = {
+                        let store_data = self.screen_state.root_folder.borrow();
+                        store_data
+                            .path_store
+                            .iter()
+                            .filter(|f| f.depth() == self.root.depth() + 1)
+                            .filter(|p| p.path().starts_with(self.root.path()))
+                            .map(|f| f.clone())
+                            .collect::<Vec<DirEntry>>()
+                    };
+
+                    let cindex = self.index + 1;
+                    let pathbuf = self.root.clone().into_path();
+                    let mut root_path = self.screen_state.root_folder.borrow_mut();
+
+                    if !root_path.path_open.contains(&self.root.clone().into_path()) {
+                        root_path.path_open.push(pathbuf);
+                        root_path.path_cache_list.splice(cindex..cindex, filtered);
+
+                        return;
+                    }
+
+                    root_path.path_open.retain(|f| *f != pathbuf);
+
+                    let path_list = filtered
                         .iter()
-                        .filter(|f| f.depth() == self.root.depth() + 1)
-                        .filter(|p| p.path().starts_with(self.root.path()))
-                        .map(|f| f.clone())
-                        .collect::<Vec<DirEntry>>()
-                };
-
-                let cindex = self.index + 1;
-                let pathbuf = self.root.clone().into_path();
-                let mut root_path = self.screen_state.root_folder.borrow_mut();
-
-                if !root_path.path_open.contains(&self.root.clone().into_path()) {
-                    root_path.path_open.push(pathbuf);
-                    root_path.path_cache_list.splice(cindex..cindex, filtered);
-
-                    return;
+                        .map(|f| f.path())
+                        .collect::<Vec<&std::path::Path>>();
+                    root_path
+                        .path_cache_list
+                        .retain(|dir| !path_list.contains(&dir.path()));
                 }
 
-                root_path.path_open.retain(|f| *f != pathbuf);
-                root_path.path_cache_list.drain(cindex..filtered.len());
+                // is file
             }
-
-            // is file
         }
     }
 }
