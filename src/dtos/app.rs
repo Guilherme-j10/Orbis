@@ -82,6 +82,7 @@ pub struct RootFolder {
     pub show_hidden_files: bool,
     pub path_cache_list: Vec<walkdir::DirEntry>,
     pub path_store: Vec<walkdir::DirEntry>,
+    pub path_open: Vec<PathBuf>
 }
 
 #[allow(dead_code)]

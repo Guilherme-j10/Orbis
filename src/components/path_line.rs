@@ -5,7 +5,7 @@ use winit::window::CursorIcon;
 use crate::{
     dtos::app::{ApplicationStateType, EditorScreenState},
     utils::{
-        constants::{FILE_ICON, FOLDER_CLOSE_ICON},
+        constants::{FILE_ICON, FOLDER_CLOSE_ICON, FOLDER_OPEN_ICON},
         style::{ComputedStyle, UIStyle},
         svg::{CustomSize, Position, draw_svg},
     },
@@ -93,6 +93,16 @@ impl<'a> UIPathLine<'a> {
 
         let icon = || -> &[u8] {
             if self.root_metadata.is_dir() {
+                if self
+                    .screen_state
+                    .root_folder
+                    .borrow()
+                    .path_open
+                    .contains(&self.root.clone().into_path())
+                {
+                    return FOLDER_OPEN_ICON;
+                }
+
                 return FOLDER_CLOSE_ICON;
             }
 
@@ -135,13 +145,18 @@ impl<'a> UIPathLine<'a> {
                 };
 
                 let cindex = self.index + 1;
-                self.screen_state
-                    .root_folder
-                    .borrow_mut()
-                    .path_cache_list
-                    .splice(cindex..cindex, filtered);
+                let pathbuf = self.root.clone().into_path();
+                let mut root_path = self.screen_state.root_folder.borrow_mut();
 
-                return;
+                if !root_path.path_open.contains(&self.root.clone().into_path()) {
+                    root_path.path_open.push(pathbuf);
+                    root_path.path_cache_list.splice(cindex..cindex, filtered);
+
+                    return;
+                }
+
+                root_path.path_open.retain(|f| *f != pathbuf);
+                root_path.path_cache_list.drain(cindex..filtered.len());
             }
 
             // is file
