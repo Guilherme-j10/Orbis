@@ -214,7 +214,7 @@ impl<'a, T: Renderer> Editor<'a, T> {
                     UIStyle::TextColor(Color::rgb(255, 255, 255)),
                     UIStyle::TextSize(13.0),
                     UIStyle::MarginTop(index as f32 * (13.0 + padding_vertical * 2.0)),
-                    UIStyle::PaddingDetail(depth as f32 * 10.0, padding_vertical, 0.0, padding_vertical),
+                    UIStyle::PaddingDetail(depth as f32 * 10.0, padding_vertical, 10.0, padding_vertical),
                 ]),
             );
 

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use femtovg::{Align, Baseline, Canvas, Color, Paint, Path, Renderer};
 use walkdir::DirEntry;
 use winit::window::CursorIcon;
@@ -41,7 +43,7 @@ impl<'a> UIPathLine<'a> {
     }
 
     pub fn draw<T: Renderer>(&mut self, canvas: &mut Canvas<T>) -> () {
-        let root_file_name = self.root.file_name().to_string_lossy().into_owned();
+        let mut root_file_name = self.root.file_name().to_string_lossy().into_owned();
         let style = ComputedStyle::from(&self.style);
 
         let text_paint = Paint::color(style.text_color)
@@ -59,7 +61,7 @@ impl<'a> UIPathLine<'a> {
         let x = bounds.0;
         let y = bounds.1 + style.margin_top;
         let mut container_paint = Paint::color(Color::rgb(26, 26, 36));
-        let width = bounds.0 + bounds.2;
+        let width = bounds.2;
         let height = style.text_size + style.padding_detail.1 + style.padding_detail.3;
 
         if self.is_mouse_over(x, y, width, height) {
@@ -70,11 +72,6 @@ impl<'a> UIPathLine<'a> {
         self.button_clicked(x, y, width, height);
         self.path.rect(x, y, width, height);
 
-        let text_width = canvas
-            .measure_text(0.0, 0.0, &root_file_name, &text_paint)
-            .expect("Failed to measure button text")
-            .width();
-
         let gap = 5.0;
         let svg_icon_size = CustomSize {
             scale_x: 13.0,
@@ -82,9 +79,39 @@ impl<'a> UIPathLine<'a> {
         };
 
         canvas.fill_path(&self.path, &container_paint);
+
+        let mut truncated = false;
+        let content_start = x + style.padding_detail.0 + svg_icon_size.scale_x + gap;
+        let available_width = bounds.2
+            - style.padding_detail.0
+            - svg_icon_size.scale_x
+            - gap
+            - style.padding_detail.2
+            - style.text_size;
+
+        let text_mensure = |text: &str| -> f32 {
+            canvas
+                .measure_text(0.0, 0.0, text, &text_paint)
+                .expect("Failed to measure text")
+                .width()
+        };
+
+        let mut text_width = text_mensure(&root_file_name);
+
+        while text_width > available_width && !root_file_name.is_empty() {
+            truncated = true;
+            root_file_name.pop();
+            text_width = text_mensure(&root_file_name);
+        }
+
+        if truncated {
+            root_file_name.push_str("...");
+            text_width = text_mensure(&root_file_name);
+        }
+
         canvas
             .fill_text(
-                x + text_width / 2.0 + style.padding_detail.0 + svg_icon_size.scale_x + gap,
+                content_start + text_width / 2.0,
                 y + height / 2.0,
                 &root_file_name,
                 &text_paint,
@@ -134,21 +161,23 @@ impl<'a> UIPathLine<'a> {
         if self.is_mouse_over(x, y, w, h) {
             if self.app_state.had_click() {
                 if self.root_metadata.is_dir() {
-                    /*
-                        [] - remove childrens paths when parent goes out
-                    */
-
                     let target_depth = self.root.depth() + 1;
-                    let filtered = {
+
+                    let filtered = |cb: Box<dyn Fn(&&DirEntry) -> bool>| -> Vec<DirEntry> {
                         let store_data = self.screen_state.root_folder.borrow();
                         store_data
                             .path_store
                             .iter()
-                            .filter(|f| f.depth() == target_depth)
+                            .filter(cb)
                             .filter(|p| p.path().starts_with(self.root.path()))
                             .map(|f| f.clone())
                             .collect::<Vec<DirEntry>>()
                     };
+
+                    let list_in_current_target =
+                        filtered(Box::new(|dir| dir.depth() == target_depth));
+                    let list_ahead_or_in_same_target =
+                        filtered(Box::new(|dir| dir.depth() >= target_depth));
 
                     let cindex = self.index + 1;
                     let pathbuf = self.root.clone().into_path();
@@ -156,7 +185,7 @@ impl<'a> UIPathLine<'a> {
 
                     if !root_path.path_open.contains(&self.root.clone().into_path()) {
                         let output = EditorScreenState::organize_list(
-                            OrganizeListKind::Raw(filtered),
+                            OrganizeListKind::Raw(list_in_current_target),
                             Some(target_depth),
                             None,
                         );
@@ -167,9 +196,16 @@ impl<'a> UIPathLine<'a> {
                         return;
                     }
 
-                    root_path.path_open.retain(|f| *f != pathbuf);
+                    let subdir_list = root_path
+                        .path_open
+                        .iter()
+                        .filter(|p| p.starts_with(&pathbuf))
+                        .map(|p| p.clone())
+                        .collect::<Vec<PathBuf>>();
 
-                    let path_list = filtered
+                    root_path.path_open.retain(|f| !subdir_list.contains(&f));
+
+                    let path_list = list_ahead_or_in_same_target
                         .iter()
                         .map(|f| f.path())
                         .collect::<Vec<&std::path::Path>>();
